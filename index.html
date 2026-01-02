@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https:; connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net; frame-src 'none'; object-src 'none'; base-uri 'self';">
+  <title>Mukkaz - Home</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script src="config.local.js" onerror="console.warn('config.local.js not found - using defaults')"></script>
+  <script src="config.js"></script>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="navbar-left">
+      <button class="nav-icon hamburger-btn" id="hamburgerBtn">
+        <span id="hamburgerIcon"></span>
+      </button>
+      <a href="index.html" class="logo">
+        <img src="logo.png" alt="Mukkaz" onerror="this.style.display='none'">
+      </a>
+    </div>
+
+    <div class="navbar-center">
+      <div class="search-container">
+        <input
+          type="text"
+          class="search-input"
+          id="searchInput"
+          placeholder="Search videos..."
+        >
+        <button class="search-btn" id="searchBtn">
+          <span id="searchIcon"></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="navbar-right" id="navbarRight">
+      <!-- Content loaded by JavaScript -->
+    </div>
+  </nav>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-section">
+      <a href="index.html" class="sidebar-item active">
+        <span id="homeIcon"></span>
+        <span>Home</span>
+      </a>
+      <a href="#trending" class="sidebar-item">
+        <span id="trendingIcon"></span>
+        <span>Trending</span>
+      </a>
+    </div>
+
+    <div class="sidebar-section" id="authSection">
+      <!-- Content loaded by JavaScript -->
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <h2 class="page-title">Recommended Videos</h2>
+
+    <!-- Video Grid -->
+    <div class="video-grid" id="videoGrid">
+      <!-- Videos loaded by JavaScript -->
+      <div class="loader">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Auth Modal -->
+  <div class="modal-overlay hidden" id="authModal">
+    <div class="modal">
+      <div class="modal-header">
+        <img src="logo.png" alt="Mukkaz" class="modal-logo" onerror="this.style.display='none'">
+        <h2 class="modal-title" id="authModalTitle">Welcome to Mukkaz</h2>
+        <button class="modal-close" id="closeAuthModal">
+          <span id="closeIcon"></span>
+        </button>
+      </div>
+
+      <p class="secondary" style="text-align: center; margin-bottom: 1.5rem; font-size: 0.95rem;">
+        Join the community and start sharing your videos today
+      </p>
+
+      <!-- Sign In Form -->
+      <form class="auth-form" id="signInForm">
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input
+            type="email"
+            class="form-input"
+            id="signInEmail"
+            required
+          >
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input
+            type="password"
+            class="form-input"
+            id="signInPassword"
+            required
+          >
+        </div>
+        <button type="submit" class="btn-primary">Sign In</button>
+        <div class="auth-footer">
+          Don't have an account?
+          <span class="auth-link" id="showSignUpBtn">Sign Up</span>
+        </div>
+      </form>
+
+      <!-- Sign Up Form -->
+      <form class="auth-form hidden" id="signUpForm">
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <input
+            type="text"
+            class="form-input"
+            id="signUpUsername"
+            required
+          >
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input
+            type="email"
+            class="form-input"
+            id="signUpEmail"
+            required
+          >
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input
+            type="password"
+            class="form-input"
+            id="signUpPassword"
+            required
+          >
+        </div>
+        <button type="submit" class="btn-primary">Sign Up</button>
+        <div class="auth-footer">
+          Already have an account?
+          <span class="auth-link" id="showSignInBtn">Sign In</span>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="icons.js"></script>
+  <script src="utils.js"></script>
+  <script src="supabase.js"></script>
+  <script src="components.js"></script>
+  <script src="app.js"></script>
+  <script>
+    let currentUser = null;
+
+    // Initialize home page
+    document.addEventListener('DOMContentLoaded', async () => {
+      await initializeApp();
+      currentUser = await getCurrentUser();
+      await loadVideos();
+    });
+
+    async function loadVideos() {
+      const videoGrid = document.getElementById('videoGrid');
+
+      try {
+        // Show skeleton loaders while loading
+        showSkeletonGrid(videoGrid, 12);
+
+        const videos = await getVideos();
+
+        if (videos.length === 0) {
+          videoGrid.innerHTML = '<p class="secondary">No videos found. Be the first to upload!</p>';
+          return;
+        }
+
+        // Clear skeleton loaders
+        videoGrid.innerHTML = '';
+
+        // Use component library to create video cards
+        videos.forEach(video => {
+          const card = createVideoCard(video, 'grid');
+          videoGrid.appendChild(card);
+        });
+
+        // Initialize bookmark states if user is logged in
+        if (currentUser) {
+          await initBookmarkStates();
+        }
+      } catch (error) {
+        console.error('Error loading videos:', error);
+        videoGrid.innerHTML = '<p class="secondary">Error loading videos. Please try again later.</p>';
+      }
+    }
+
+    // Search functionality
+    document.getElementById('searchBtn').addEventListener('click', handleSearch);
+    document.getElementById('searchInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleSearch();
+    });
+
+    async function handleSearch() {
+      const searchTerm = document.getElementById('searchInput').value.trim();
+      if (!searchTerm) return;
+
+      const videoGrid = document.getElementById('videoGrid');
+
+      // Show skeleton loaders while searching
+      showSkeletonGrid(videoGrid, 12);
+
+      try {
+        const videos = await getVideos();
+        const filtered = videos.filter(video =>
+          video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          video.description?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+
+        if (filtered.length === 0) {
+          videoGrid.innerHTML = `<p class="secondary">No results found for "${searchTerm}"</p>`;
+          return;
+        }
+
+        // Clear skeleton loaders
+        videoGrid.innerHTML = '';
+
+        // Use component library to create video cards
+        filtered.forEach(video => {
+          const card = createVideoCard(video, 'grid');
+          videoGrid.appendChild(card);
+        });
+
+        // Initialize bookmark states if user is logged in
+        if (currentUser) {
+          await initBookmarkStates();
+        }
+
+        // Save search to history if user is logged in
+        if (currentUser) {
+          try {
+            await addSearchHistory(searchTerm);
+          } catch (error) {
+            console.error('Error saving search history:', error);
+          }
+        }
+      } catch (error) {
+        console.error('Error searching videos:', error);
+        videoGrid.innerHTML = '<p class="secondary">Error loading search results</p>';
+        showNotification('Error searching videos', 'error');
+      }
+    }
+  </script>
+</body>
+</html>

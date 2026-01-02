@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https:; connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net; frame-src 'none'; object-src 'none'; base-uri 'self';">
+  <title>Upload Video - Mukkaz</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script src="config.local.js" onerror="console.warn('config.local.js not found - using defaults')"></script>
+  <script src="config.js"></script>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="navbar-left">
+      <button class="nav-icon hamburger-btn" id="hamburgerBtn">
+        <span id="hamburgerIcon"></span>
+      </button>
+      <a href="index.html" class="logo">
+        <img src="logo.png" alt="Mukkaz" onerror="this.style.display='none'">
+      </a>
+    </div>
+
+    <div class="navbar-center">
+      <div class="search-container">
+        <input
+          type="text"
+          class="search-input"
+          id="searchInput"
+          placeholder="Search videos..."
+        >
+        <button class="search-btn" id="searchBtn">
+          <span id="searchIcon"></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="navbar-right" id="navbarRight">
+      <!-- Content loaded by JavaScript -->
+    </div>
+  </nav>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-section">
+      <a href="index.html" class="sidebar-item">
+        <span id="homeIcon"></span>
+        <span>Home</span>
+      </a>
+      <a href="#trending" class="sidebar-item">
+        <span id="trendingIcon"></span>
+        <span>Trending</span>
+      </a>
+    </div>
+
+    <div class="sidebar-section" id="authSection">
+      <!-- Content loaded by JavaScript -->
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="upload-container">
+      <h2 class="page-title">Upload Video</h2>
+
+      <div class="upload-form">
+        <form id="uploadForm">
+          <!-- Video File Upload -->
+          <div class="form-group">
+            <label class="form-label">Video File *</label>
+            <div class="file-upload-area" id="videoUploadArea">
+              <div class="upload-icon" id="videoUploadIcon"></div>
+              <p>Click or drag video file to upload</p>
+              <p class="secondary" style="font-size: 0.85rem; margin-top: 0.5rem;">
+                MP4, WebM, or AVI (Max 100MB)
+              </p>
+            </div>
+            <input
+              type="file"
+              id="videoFile"
+              class="file-input"
+              accept="video/mp4,video/webm,video/avi"
+              required
+            >
+            <div class="file-info hidden" id="videoFileInfo"></div>
+          </div>
+
+          <!-- Thumbnail Upload -->
+          <div class="form-group">
+            <label class="form-label">Thumbnail *</label>
+            <div class="file-upload-area" id="thumbnailUploadArea">
+              <div class="upload-icon" id="thumbnailUploadIcon"></div>
+              <p>Click or drag thumbnail image to upload</p>
+              <p class="secondary" style="font-size: 0.85rem; margin-top: 0.5rem;">
+                JPG, PNG, or WebP (Max 5MB)
+              </p>
+            </div>
+            <input
+              type="file"
+              id="thumbnailFile"
+              class="file-input"
+              accept="image/jpeg,image/png,image/webp"
+              required
+            >
+            <div class="file-info hidden" id="thumbnailFileInfo"></div>
+            <div id="thumbnailPreview" class="hidden" style="margin-top: 1rem;">
+              <img id="thumbnailImg" style="max-width: 300px; border-radius: 4px;" alt="Thumbnail preview">
+            </div>
+          </div>
+
+          <!-- Video Title -->
+          <div class="form-group">
+            <label class="form-label">Title *</label>
+            <input
+              type="text"
+              class="form-input"
+              id="videoTitle"
+              placeholder="Enter video title"
+              required
+              maxlength="100"
+            >
+          </div>
+
+          <!-- Video Description -->
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea
+              class="form-textarea"
+              id="videoDescription"
+              placeholder="Tell viewers about your video"
+              maxlength="500"
+            ></textarea>
+          </div>
+
+          <!-- Upload Progress -->
+          <div class="file-info hidden" id="uploadProgress">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+              <div class="spinner"></div>
+              <span id="uploadStatusText">Uploading...</span>
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button type="submit" class="btn-primary" id="uploadBtn">Upload Video</button>
+            <button type="button" class="btn-secondary" onclick="window.location.href='index.html'">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <!-- Auth Modal -->
+  <div class="modal-overlay hidden" id="authModal">
+    <div class="modal">
+      <div class="modal-header">
+        <img src="logo.png" alt="Mukkaz" class="modal-logo" onerror="this.style.display='none'">
+        <h2 class="modal-title" id="authModalTitle">Welcome to Mukkaz</h2>
+        <button class="modal-close" id="closeAuthModal">
+          <span id="closeIcon"></span>
+        </button>
+      </div>
+
+      <p class="secondary" style="text-align: center; margin-bottom: 1.5rem; font-size: 0.95rem;">
+        Join the community and start sharing your videos today
+      </p>
+
+      <form class="auth-form" id="signInForm">
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" id="signInEmail" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-input" id="signInPassword" required>
+        </div>
+        <button type="submit" class="btn-primary">Sign In</button>
+        <div class="auth-footer">
+          Don't have an account?
+          <span class="auth-link" id="showSignUpBtn">Sign Up</span>
+        </div>
+      </form>
+
+      <form class="auth-form hidden" id="signUpForm">
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <input type="text" class="form-input" id="signUpUsername" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" id="signUpEmail" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-input" id="signUpPassword" required>
+        </div>
+        <button type="submit" class="btn-primary">Sign Up</button>
+        <div class="auth-footer">
+          Already have an account?
+          <span class="auth-link" id="showSignInBtn">Sign In</span>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="icons.js"></script>
+  <script src="utils.js"></script>
+  <script src="supabase.js"></script>
+  <script src="app.js"></script>
+  <script>
+    let videoFile = null;
+    let thumbnailFile = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await initializeApp();
+
+      const user = await getCurrentUser();
+      if (!user) {
+        const uploadContainer = document.querySelector('.upload-container');
+        uploadContainer.innerHTML = `
+          <h2 class="page-title">Upload Video</h2>
+          <div style="text-align: center; padding: 4rem 2rem; background-color: var(--bg-secondary); border-radius: 12px;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">${getIcon('upload')}</div>
+            <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">Sign In to Upload Videos</h3>
+            <p class="secondary" style="margin-bottom: 2rem; font-size: 1.1rem;">
+              Join Mukkaz to share your videos with the world!
+            </p>
+            <button class="btn-primary" onclick="openModal()" style="font-size: 1.1rem; padding: 1rem 3rem;">
+              Sign In / Sign Up
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      setupFileUploads();
+    });
+
+    function setupFileUploads() {
+      // Video file upload
+      const videoUploadArea = document.getElementById('videoUploadArea');
+      const videoFileInput = document.getElementById('videoFile');
+      const videoFileInfo = document.getElementById('videoFileInfo');
+
+      videoUploadArea.addEventListener('click', () => videoFileInput.click());
+
+      videoUploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        videoUploadArea.classList.add('active');
+      });
+
+      videoUploadArea.addEventListener('dragleave', () => {
+        videoUploadArea.classList.remove('active');
+      });
+
+      videoUploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        videoUploadArea.classList.remove('active');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          videoFileInput.files = files;
+          handleVideoFile(files[0]);
+        }
+      });
+
+      videoFileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+          handleVideoFile(e.target.files[0]);
+        }
+      });
+
+      // Thumbnail upload
+      const thumbnailUploadArea = document.getElementById('thumbnailUploadArea');
+      const thumbnailFileInput = document.getElementById('thumbnailFile');
+      const thumbnailFileInfo = document.getElementById('thumbnailFileInfo');
+
+      thumbnailUploadArea.addEventListener('click', () => thumbnailFileInput.click());
+
+      thumbnailUploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        thumbnailUploadArea.classList.add('active');
+      });
+
+      thumbnailUploadArea.addEventListener('dragleave', () => {
+        thumbnailUploadArea.classList.remove('active');
+      });
+
+      thumbnailUploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        thumbnailUploadArea.classList.remove('active');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          thumbnailFileInput.files = files;
+          handleThumbnailFile(files[0]);
+        }
+      });
+
+      thumbnailFileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+          handleThumbnailFile(e.target.files[0]);
+        }
+      });
+    }
+
+    function handleVideoFile(file) {
+      const maxSize = 100 * 1024 * 1024; // 100MB
+
+      if (file.size > maxSize) {
+        showNotification('Video file must be less than 100MB', 'error');
+        return;
+      }
+
+      videoFile = file;
+      const fileInfo = document.getElementById('videoFileInfo');
+      fileInfo.classList.remove('hidden');
+      fileInfo.textContent = `Selected: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
+    }
+
+    function handleThumbnailFile(file) {
+      const maxSize = 5 * 1024 * 1024; // 5MB
+
+      if (file.size > maxSize) {
+        showNotification('Thumbnail must be less than 5MB', 'error');
+        return;
+      }
+
+      thumbnailFile = file;
+      const fileInfo = document.getElementById('thumbnailFileInfo');
+      fileInfo.classList.remove('hidden');
+      fileInfo.textContent = `Selected: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
+
+      // Show preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        document.getElementById('thumbnailImg').src = e.target.result;
+        document.getElementById('thumbnailPreview').classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Form submission
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      if (!videoFile || !thumbnailFile) {
+        showNotification('Please select both video and thumbnail files', 'error');
+        return;
+      }
+
+      const title = document.getElementById('videoTitle').value.trim();
+      const description = document.getElementById('videoDescription').value.trim();
+
+      if (!title) {
+        showNotification('Please enter a video title', 'error');
+        return;
+      }
+
+      const uploadBtn = document.getElementById('uploadBtn');
+      const uploadProgress = document.getElementById('uploadProgress');
+      const statusText = document.getElementById('uploadStatusText');
+
+      uploadBtn.disabled = true;
+      uploadProgress.classList.remove('hidden');
+      statusText.textContent = 'Uploading video...';
+
+      try {
+        const video = await uploadVideo(videoFile, thumbnailFile, title, description);
+
+        statusText.textContent = 'Upload complete!';
+        showNotification('Video uploaded successfully!', 'success');
+
+        setTimeout(() => {
+          window.location.href = `watch.html?v=${video.id}`;
+        }, 1500);
+      } catch (error) {
+        console.error('Upload error:', error);
+        showNotification(error.message || 'Error uploading video', 'error');
+        uploadBtn.disabled = false;
+        uploadProgress.classList.add('hidden');
+      }
+    });
+
+    // Add upload icons
+    document.getElementById('videoUploadIcon').innerHTML = getIcon('upload');
+    document.getElementById('thumbnailUploadIcon').innerHTML = getIcon('upload');
+  </script>
+</body>
+</html>

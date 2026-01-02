@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https:; connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net; frame-src 'none'; object-src 'none'; base-uri 'self';">
+<title>Age Verification</title>
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<script src="config.local.js" onerror="console.warn('config.local.js not found - using defaults')"></script>
+<script src="config.js"></script>
+
+<style>
+/* ======================
+   AGE GATE STYLES
+====================== */
+
+#ageGateOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.96);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999999;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+}
+
+#ageGateModal {
+  max-width: 520px;
+  width: 92%;
+  background: #0e0e0e;
+  border-radius: 18px;
+  padding: 42px 34px;
+  text-align: center;
+  border: 2px solid #e10600;
+  box-shadow: 0 0 45px rgba(225, 6, 0, 0.3);
+}
+
+/* Logo */
+#ageGateModal img {
+  width: 96px;
+  margin-bottom: 22px;
+}
+
+/* Heading */
+#ageGateModal h1 {
+  color: #ffffff;
+  font-size: 28px;
+  margin-bottom: 18px;
+}
+
+/* Notice text */
+#ageGateModal p.notice {
+  color: #bdbdbd;
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 30px;
+}
+
+/* Buttons */
+.age-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.age-btn {
+  padding: 14px 22px;
+  font-size: 15px;
+  border-radius: 12px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  min-width: 200px;
+}
+
+.age-btn.enter {
+  background: #e10600;
+  color: #ffffff;
+}
+
+.age-btn.enter:hover {
+  background: #ff1a1a;
+}
+
+.age-btn.exit {
+  background: transparent;
+  border-color: #555;
+  color: #cccccc;
+}
+
+.age-btn.exit:hover {
+  border-color: #888;
+  color: #ffffff;
+}
+
+/* Footer */
+.age-footer {
+  margin-top: 28px;
+  font-size: 13px;
+  color: #888;
+}
+
+.age-footer span {
+  color: #e10600;
+  cursor: pointer;
+}
+
+/* Hide after verification */
+.hidden {
+  display: none !important;
+}
+</style>
+</head>
+
+<body>
+
+<!-- AGE GATE -->
+<div id="ageGateOverlay">
+  <div id="ageGateModal">
+
+    <!-- 🔁 CHANGE LOGO PATH HERE -->
+    <img src="logo.png" alt="Site Logo">
+
+    <h1>This is an adult website</h1>
+
+    <p class="notice">
+      This website contains age-restricted material intended for adults only.
+      By entering, you confirm that you are at least <strong>18 years old</strong>
+      and legally permitted to view adult content in your jurisdiction.
+    </p>
+
+    <div class="age-buttons">
+      <button class="age-btn enter" onclick="enterSite()">I am 18 or older</button>
+      <button class="age-btn exit" onclick="exitSite()">I am under 18</button>
+    </div>
+
+    <div class="age-footer">
+      Parents: visit our <span>parental controls</span> page to block access.
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ======================
+   AGE GATE LOGIC
+====================== */
+
+const ageGate = document.getElementById("ageGateOverlay");
+
+// Check if already verified
+if (localStorage.getItem("ageVerified") === "true") {
+  ageGate.classList.add("hidden");
+}
+
+function enterSite() {
+  localStorage.setItem("ageVerified", "true");
+  ageGate.classList.add("hidden");
+}
+
+function exitSite() {
+  window.location.href = "https://www.google.com";
+}
+</script>
+
+</body>
+</html>

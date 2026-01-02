@@ -1,0 +1,14 @@
+// Local Configuration Override
+// Copy this file to config.local.js and fill in your actual Supabase credentials
+// NEVER commit config.local.js to version control
+
+window.CONFIG_LOCAL = {
+  supabase: {
+    url: 'https://htoxqclnmzyuxxojkvwz.supabase.co',
+    publishableKey: 'sb_publishable_iPZIxwfQ8Mw60aVWUcCLxQ_l81pqWq9'
+  },
+
+  features: {
+    enableDebugLogging: true // Set to false in production
+  }
+};

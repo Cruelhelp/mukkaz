@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://vjs.zencdn.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://vjs.zencdn.net; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https:; connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net; frame-src 'none'; object-src 'none'; base-uri 'self';">
+  <title>Watch - Mukkaz</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script src="config.local.js" onerror="console.warn('config.local.js not found - using defaults')"></script>
+  <script src="config.js"></script>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://vjs.zencdn.net/8.6.1/video-js.css" rel="stylesheet">
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="navbar-left">
+      <button class="nav-icon hamburger-btn" id="hamburgerBtn">
+        <span id="hamburgerIcon"></span>
+      </button>
+      <a href="index.html" class="logo">
+        <img src="logo.png" alt="Mukkaz" onerror="this.style.display='none'">
+      </a>
+    </div>
+
+    <div class="navbar-center">
+      <div class="search-container">
+        <input
+          type="text"
+          class="search-input"
+          id="searchInput"
+          placeholder="Search videos..."
+        >
+        <button class="search-btn" id="searchBtn">
+          <span id="searchIcon"></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="navbar-right" id="navbarRight">
+      <!-- Content loaded by JavaScript -->
+    </div>
+  </nav>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-section">
+      <a href="index.html" class="sidebar-item">
+        <span id="homeIcon"></span>
+        <span>Home</span>
+      </a>
+      <a href="#trending" class="sidebar-item">
+        <span id="trendingIcon"></span>
+        <span>Trending</span>
+      </a>
+    </div>
+
+    <div class="sidebar-section" id="authSection">
+      <!-- Content loaded by JavaScript -->
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="watch-container">
+      <!-- Main Video Area -->
+      <div class="watch-main">
+        <!-- Video Player -->
+        <div class="video-player-container">
+          <video
+            id="videoPlayer"
+            class="video-js vjs-big-play-centered video-player"
+            controls
+            preload="auto"
+          >
+          </video>
+        </div>
+
+        <!-- Video Header -->
+        <div class="video-header">
+          <h1 class="video-title-main" id="videoTitle">Loading...</h1>
+
+          <div class="video-stats-bar">
+            <div class="video-stats-left">
+              <span id="videoViews">0 views</span>
+              <span>•</span>
+              <span id="videoDate">Just now</span>
+            </div>
+
+            <div class="video-actions-bar">
+              <button class="action-btn-icon" id="likeBtn">
+                <span id="likeIcon"></span>
+                <span id="likeCount">0</span>
+              </button>
+              <button class="action-btn-icon" id="dislikeBtn">
+                <span id="dislikeIcon"></span>
+                <span id="dislikeCount">0</span>
+              </button>
+              <button class="action-btn-icon" id="shareBtn">
+                <span id="shareIcon"></span>
+                <span>Share</span>
+              </button>
+              <button class="action-btn-icon" id="bookmarkBtn">
+                <span id="bookmarkIcon"></span>
+                <span>Save</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Channel Info Bar -->
+        <div class="channel-info-bar">
+          <div class="channel-info-left">
+            <a href="#" id="channelLink">
+              <img src="" alt="Channel" class="channel-avatar-large" id="channelAvatar">
+            </a>
+            <div class="channel-details">
+              <h3 id="channelName">Loading...</h3>
+              <p class="secondary" id="subscriberCount">0 subscribers</p>
+            </div>
+          </div>
+          <div id="subscribeContainer"></div>
+        </div>
+
+        <!-- Video Description -->
+        <div class="video-description collapsed" id="videoDescription">
+          Loading...
+        </div>
+        <button class="description-toggle" id="descriptionToggle">Show more</button>
+
+        <!-- Comments Section -->
+        <div class="comments-section">
+          <div class="comments-header">
+            <span id="commentsHeader">0 Comments</span>
+          </div>
+
+          <div class="comment-form" id="addCommentSection" style="display: none;">
+            <img src="" alt="Your avatar" class="comment-avatar" id="userCommentAvatar">
+            <div style="flex: 1;">
+              <textarea
+                placeholder="Add a comment..."
+                id="commentInput"
+                rows="1"
+              ></textarea>
+              <div class="comment-form-actions hidden" id="commentFormActions">
+                <button class="btn-secondary" id="cancelCommentBtn">Cancel</button>
+                <button class="btn-primary" id="submitCommentBtn">Comment</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="commentsList">
+            <!-- Comments loaded by JavaScript -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Suggested Videos Sidebar -->
+      <aside class="watch-sidebar">
+        <div class="suggested-videos">
+          <h3>Up Next</h3>
+          <div id="suggestedVideosList">
+            <!-- Skeleton loaders while loading -->
+            <div class="video-card-horizontal skeleton-horizontal">
+              <div class="skeleton-thumb-horizontal"></div>
+              <div class="skeleton-info-horizontal">
+                <div class="skeleton-title-horizontal"></div>
+                <div class="skeleton-text-horizontal"></div>
+                <div class="skeleton-text-horizontal"></div>
+              </div>
+            </div>
+            <div class="video-card-horizontal skeleton-horizontal">
+              <div class="skeleton-thumb-horizontal"></div>
+              <div class="skeleton-info-horizontal">
+                <div class="skeleton-title-horizontal"></div>
+                <div class="skeleton-text-horizontal"></div>
+                <div class="skeleton-text-horizontal"></div>
+              </div>
+            </div>
+            <div class="video-card-horizontal skeleton-horizontal">
+              <div class="skeleton-thumb-horizontal"></div>
+              <div class="skeleton-info-horizontal">
+                <div class="skeleton-title-horizontal"></div>
+                <div class="skeleton-text-horizontal"></div>
+                <div class="skeleton-text-horizontal"></div>
+              </div>
+            </div>
+            <div class="video-card-horizontal skeleton-horizontal">
+              <div class="skeleton-thumb-horizontal"></div>
+              <div class="skeleton-info-horizontal">
+                <div class="skeleton-title-horizontal"></div>
+                <div class="skeleton-text-horizontal"></div>
+                <div class="skeleton-text-horizontal"></div>
+              </div>
+            </div>
+            <div class="video-card-horizontal skeleton-horizontal">
+              <div class="skeleton-thumb-horizontal"></div>
+              <div class="skeleton-info-horizontal">
+                <div class="skeleton-title-horizontal"></div>
+                <div class="skeleton-text-horizontal"></div>
+                <div class="skeleton-text-horizontal"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <!-- Auth Modal -->
+  <div class="modal-overlay hidden" id="authModal">
+    <div class="modal">
+      <div class="modal-header">
+        <img src="logo.png" alt="Mukkaz" class="modal-logo" onerror="this.style.display='none'">
+        <h2 class="modal-title" id="authModalTitle">Welcome to Mukkaz</h2>
+        <button class="modal-close" id="closeAuthModal">
+          <span id="closeIcon"></span>
+        </button>
+      </div>
+
+      <p class="secondary" style="text-align: center; margin-bottom: 1.5rem; font-size: 0.95rem;">
+        Join the community and start sharing your videos today
+      </p>
+
+      <form class="auth-form" id="signInForm">
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" id="signInEmail" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-input" id="signInPassword" required>
+        </div>
+        <button type="submit" class="btn-primary">Sign In</button>
+        <div class="auth-footer">
+          Don't have an account?
+          <span class="auth-link" id="showSignUpBtn">Sign Up</span>
+        </div>
+      </form>
+
+      <form class="auth-form hidden" id="signUpForm">
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <input type="text" class="form-input" id="signUpUsername" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" id="signUpEmail" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-input" id="signUpPassword" required>
+        </div>
+        <button type="submit" class="btn-primary">Sign Up</button>
+        <div class="auth-footer">
+          Already have an account?
+          <span class="auth-link" id="showSignInBtn">Sign In</span>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://vjs.zencdn.net/8.6.1/video.min.js"></script>
+  <script src="icons.js"></script>
+  <script src="utils.js"></script>
+  <script src="supabase.js"></script>
+  <script src="components.js"></script>
+  <script src="app.js"></script>
+  <script>
+    let currentVideo = null;
+    let currentUser = null;
+    let player = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await initializeApp();
+      currentUser = await getCurrentUser();
+
+      // Auto-collapse sidebar on watch page (desktop only)
+      if (window.innerWidth > 1024) {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar && !sidebar.classList.contains('collapsed')) {
+          sidebar.classList.add('collapsed');
+          document.body.classList.add('sidebar-collapsed');
+        }
+      }
+
+      // Load icons
+      document.getElementById('likeIcon').innerHTML = getIcon('like');
+      document.getElementById('dislikeIcon').innerHTML = getIcon('dislike');
+      document.getElementById('shareIcon').innerHTML = getIcon('share');
+      document.getElementById('bookmarkIcon').innerHTML = getIcon('bookmark');
+
+      await loadVideo();
+    });
+
+    async function loadVideo() {
+      const videoId = getQueryParam('v');
+      if (!videoId) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      try {
+        currentVideo = await getVideo(videoId);
+        await displayVideo(currentVideo);
+        loadComments(currentVideo.comments || []);
+        await updateVoteCounts();
+        await loadSuggestedVideos();
+
+        // Show add comment section if user is logged in
+        if (currentUser) {
+          document.getElementById('addCommentSection').style.display = 'flex';
+          const profile = await getProfile(currentUser.id);
+          document.getElementById('userCommentAvatar').src = profile.avatar_url;
+
+          // Check bookmark status
+          const bookmarked = await isBookmarked(videoId);
+          if (bookmarked) {
+            document.getElementById('bookmarkBtn').classList.add('active');
+          }
+        }
+      } catch (error) {
+        console.error('Error loading video:', error);
+        showNotification('Error loading video', 'error');
+      }
+    }
+
+    async function displayVideo(video) {
+      const profile = video.profiles || {};
+
+      document.getElementById('videoTitle').textContent = video.title;
+      document.getElementById('videoViews').textContent = `${formatNumber(video.views_count || 0)} views`;
+      document.getElementById('videoDate').textContent = timeSince(new Date(video.created_at));
+      document.getElementById('videoDescription').textContent = video.description || 'No description available.';
+      document.getElementById('channelName').textContent = profile.username || 'Unknown';
+      document.getElementById('channelAvatar').src = profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username}`;
+      document.getElementById('subscriberCount').textContent = `${formatNumber(profile.subscribers_count || 0)} subscribers`;
+      document.getElementById('channelLink').href = `profile.html?id=${video.user_id}`;
+
+      // Add subscribe button
+      if (currentUser && currentUser.id !== video.user_id) {
+        const subscribed = await isSubscribed(video.user_id);
+        const subscribeBtn = createSubscribeButton(video.user_id, subscribed);
+        document.getElementById('subscribeContainer').appendChild(subscribeBtn);
+      }
+
+      // Initialize video player
+      player = videojs('videoPlayer', {
+        controls: true,
+        autoplay: false,
+        preload: 'auto'
+      });
+
+      player.src({ type: 'video/mp4', src: video.url });
+
+      // Track view
+      let viewCounted = false;
+      player.on('timeupdate', async () => {
+        if (!viewCounted && player.currentTime() > 5) {
+          viewCounted = true;
+          await incrementViews(video.id);
+        }
+      });
+    }
+
+    async function loadSuggestedVideos() {
+      const container = document.getElementById('suggestedVideosList');
+
+      try {
+        const videos = await getVideos();
+        const suggested = videos.filter(v => v.id !== currentVideo.id).slice(0, 20);
+
+        container.innerHTML = '';
+        suggested.forEach(video => {
+          const card = createVideoCard(video, 'horizontal');
+          container.appendChild(card);
+        });
+      } catch (error) {
+        console.error('Error loading suggested videos:', error);
+        container.innerHTML = '<p class="secondary">Failed to load suggestions</p>';
+      }
+    }
+
+    async function updateVoteCounts() {
+      try {
+        const { likes, dislikes } = await getVoteCounts(currentVideo.id);
+        document.getElementById('likeCount').textContent = likes;
+        document.getElementById('dislikeCount').textContent = dislikes;
+
+        // Highlight user's vote
+        if (currentUser && currentVideo.video_votes) {
+          const userVote = currentVideo.video_votes.find(v => v.user_id === currentUser.id);
+          if (userVote) {
+            if (userVote.vote_type === 'like') {
+              document.getElementById('likeBtn').classList.add('active');
+            } else {
+              document.getElementById('dislikeBtn').classList.add('active');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error updating vote counts:', error);
+      }
+    }
+
+    function loadComments(comments) {
+      const commentsList = document.getElementById('commentsList');
+      const commentsHeader = document.getElementById('commentsHeader');
+
+      commentsHeader.textContent = `${comments.length} Comment${comments.length !== 1 ? 's' : ''}`;
+
+      if (comments.length === 0) {
+        commentsList.innerHTML = '<p class="secondary">No comments yet. Be the first to comment!</p>';
+        return;
+      }
+
+      commentsList.innerHTML = comments.map(comment => {
+        const profile = comment.profiles || {};
+        const username = escapeHtml(profile.username || 'Unknown');
+        const avatarUrl = profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(profile.username || 'Unknown')}`;
+        const commentText = escapeHtml(comment.text);
+        const timeAgo = escapeHtml(timeSince(comment.created_at));
+
+        return `
+          <div class="comment">
+            <img src="${avatarUrl}" alt="${username}" class="avatar md">
+            <div class="comment-content">
+              <div class="comment-header">
+                <span class="comment-author">${username}</span>
+                <span class="comment-time">${timeAgo} ago</span>
+              </div>
+              <p class="comment-text">${commentText}</p>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Like/Dislike handlers
+    document.getElementById('likeBtn').addEventListener('click', async () => {
+      if (!currentUser) {
+        openModal();
+        return;
+      }
+
+      try {
+        const likeBtn = document.getElementById('likeBtn');
+        const isActive = likeBtn.classList.contains('active');
+
+        if (isActive) {
+          await removeVote(currentVideo.id);
+          likeBtn.classList.remove('active');
+        } else {
+          await voteVideo(currentVideo.id, 'like');
+          likeBtn.classList.add('active');
+          document.getElementById('dislikeBtn').classList.remove('active');
+        }
+
+        await updateVoteCounts();
+      } catch (error) {
+        console.error('Error voting:', error);
+        showNotification('Error voting', 'error');
+      }
+    });
+
+    document.getElementById('dislikeBtn').addEventListener('click', async () => {
+      if (!currentUser) {
+        openModal();
+        return;
+      }
+
+      try {
+        const dislikeBtn = document.getElementById('dislikeBtn');
+        const isActive = dislikeBtn.classList.contains('active');
+
+        if (isActive) {
+          await removeVote(currentVideo.id);
+          dislikeBtn.classList.remove('active');
+        } else {
+          await voteVideo(currentVideo.id, 'dislike');
+          dislikeBtn.classList.add('active');
+          document.getElementById('likeBtn').classList.remove('active');
+        }
+
+        await updateVoteCounts();
+      } catch (error) {
+        console.error('Error voting:', error);
+        showNotification('Error voting', 'error');
+      }
+    });
+
+    // Share button handler
+    document.getElementById('shareBtn').addEventListener('click', () => {
+      openShareModal(currentVideo.id, currentVideo.title);
+    });
+
+    // Bookmark button handler
+    document.getElementById('bookmarkBtn').addEventListener('click', async () => {
+      if (!currentUser) {
+        openModal();
+        return;
+      }
+      await toggleBookmark(currentVideo.id, document.getElementById('bookmarkBtn'));
+    });
+
+    // Description toggle
+    document.getElementById('descriptionToggle').addEventListener('click', () => {
+      const desc = document.getElementById('videoDescription');
+      const btn = document.getElementById('descriptionToggle');
+
+      if (desc.classList.contains('collapsed')) {
+        desc.classList.remove('collapsed');
+        btn.textContent = 'Show less';
+      } else {
+        desc.classList.add('collapsed');
+        btn.textContent = 'Show more';
+      }
+    });
+
+    // Comment input focus handlers
+    const commentInput = document.getElementById('commentInput');
+    const commentFormActions = document.getElementById('commentFormActions');
+
+    commentInput.addEventListener('focus', () => {
+      commentFormActions.classList.remove('hidden');
+    });
+
+    document.getElementById('cancelCommentBtn').addEventListener('click', () => {
+      commentInput.value = '';
+      commentFormActions.classList.add('hidden');
+      commentInput.blur();
+    });
+
+    document.getElementById('submitCommentBtn').addEventListener('click', async () => {
+      const text = commentInput.value.trim();
+      if (!text) return;
+
+      try {
+        const comment = await addComment(currentVideo.id, text);
+        currentVideo.comments = [comment, ...(currentVideo.comments || [])];
+        loadComments(currentVideo.comments);
+        commentInput.value = '';
+        commentFormActions.classList.add('hidden');
+        showNotification('Comment added!', 'success');
+      } catch (error) {
+        console.error('Error adding comment:', error);
+        showNotification('Error adding comment', 'error');
+      }
+    });
+
+    // Search functionality
+    document.getElementById('searchBtn').addEventListener('click', () => {
+      const searchTerm = document.getElementById('searchInput').value.trim();
+      if (searchTerm) {
+        window.location.href = `index.html?search=${encodeURIComponent(searchTerm)}`;
+      }
+    });
+
+    document.getElementById('searchInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const searchTerm = e.target.value.trim();
+        if (searchTerm) {
+          window.location.href = `index.html?search=${encodeURIComponent(searchTerm)}`;
+        }
+      }
+    });
+  </script>
+</body>
+</html>
