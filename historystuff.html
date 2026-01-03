@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Watch history – Replica</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root {
+  --bg: #0f0f0f;
+  --panel: #181818;
+  --border: #2a2a2a;
+  --text: #ffffff;
+  --muted: #aaaaaa;
+  --chip: #272727;
+  --chip-active: #ffffff;
+  --chip-active-text: #000000;
+  --accent: #ff0033;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: linear-gradient(to right, #000, #0f0f0f 40%);
+  color: var(--text);
+}
+
+.page {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 32px;
+  max-width: 1400px;
+  margin: auto;
+  padding: 32px;
+}
+
+/* HEADER */
+h1 {
+  font-size: 32px;
+  margin-bottom: 16px;
+}
+
+/* FILTER CHIPS */
+.filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.chip {
+  background: var(--chip);
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.chip.active {
+  background: var(--chip-active);
+  color: var(--chip-active-text);
+}
+
+/* SECTION TITLE */
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+/* HISTORY ITEM */
+.history-item {
+  display: grid;
+  grid-template-columns: 280px 1fr 24px;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.thumbnail {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #333;
+  aspect-ratio: 16/9;
+}
+
+.thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  width: 40%;
+  background: var(--accent);
+}
+
+.duration {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(0,0,0,0.8);
+  padding: 2px 6px;
+  font-size: 12px;
+  border-radius: 4px;
+}
+
+.video-info h3 {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.meta {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.4;
+  max-width: 700px;
+}
+
+/* MORE ICON */
+.more {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.more svg {
+  fill: currentColor;
+  width: 20px;
+  height: 20px;
+}
+
+/* SIDEBAR */
+.sidebar {
+  padding-top: 64px;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+  margin-bottom: 24px;
+  color: var(--muted);
+}
+
+.search-box svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.sidebar-action {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  cursor: pointer;
+}
+
+.sidebar-action svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+.sidebar-section {
+  margin-top: 24px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* RESPONSIVE */
+@media (max-width: 1100px) {
+  .page {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    padding-top: 24px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<!-- ICON SPRITE -->
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="search" viewBox="0 0 24 24">
+    <path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.71.71l.27.28v.79l5 5 1.5-1.5-5-5zM10 15a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"/>
+  </symbol>
+
+  <symbol id="trash" viewBox="0 0 24 24">
+    <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14z"/>
+  </symbol>
+
+  <symbol id="pause" viewBox="0 0 24 24">
+    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+  </symbol>
+
+  <symbol id="settings" viewBox="0 0 24 24">
+    <path d="M19.14 12.94a7.49 7.49 0 0 0 .05-.94 7.49 7.49 0 0 0-.05-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.42 7.42 0 0 0-1.63-.94l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54a7.42 7.42 0 0 0-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.7 8.84a.5.5 0 0 0 .12.64l2.03 1.58a7.49 7.49 0 0 0-.05.94c0 .32.02.63.05.94L2.82 14.52a.5.5 0 0 0-.12.64l1.92 3.32a.5.5 0 0 0 .6.22l2.39-.96c.5.38 1.05.7 1.63.94l.36 2.54a.5.5 0 0 0 .5.42h3.84a.5.5 0 0 0 .5-.42l.36-2.54c.58-.24 1.13-.56 1.63-.94l2.39.96a.5.5 0 0 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58z"/>
+  </symbol>
+
+  <symbol id="more" viewBox="0 0 24 24">
+    <circle cx="12" cy="5" r="2"/>
+    <circle cx="12" cy="12" r="2"/>
+    <circle cx="12" cy="19" r="2"/>
+  </symbol>
+</svg>
+
+<div class="page">
+
+<!-- MAIN -->
+<div>
+  <h1>Watch history</h1>
+
+  <div class="filters">
+    <div class="chip active">All</div>
+    <div class="chip">Videos</div>
+    <div class="chip">Shorts</div>
+    <div class="chip">Podcasts</div>
+    <div class="chip">Music</div>
+  </div>
+
+  <div class="section-title">Today</div>
+
+  <!-- ITEM 1 -->
+  <div class="history-item">
+    <div class="thumbnail">
+      <img src="https://i.imgur.com/9b5Z9mT.jpg">
+      <div class="progress"></div>
+      <div class="duration">58:26</div>
+    </div>
+    <div class="video-info">
+      <h3>On the Stairs of Flesh: How Bloodborne Transcends Body Horror</h3>
+      <div class="meta">Media Wizard • 335k views</div>
+      <div class="desc">
+        Bloodborne's Body Horror accomplishes functions beyond simply terrifying its players, instead it fundamentally changes how the player views the very notion of having a body...
+      </div>
+    </div>
+    <div class="more">
+      <svg><use href="#more"/></svg>
+    </div>
+  </div>
+
+  <!-- ITEM 2 -->
+  <div class="history-item">
+    <div class="thumbnail">
+      <img src="https://i.imgur.com/Y4G8GQw.jpg">
+      <div class="progress"></div>
+      <div class="duration">22:16</div>
+    </div>
+    <div class="video-info">
+      <h3>Which AI Can Make the Scariest Horror Game?</h3>
+      <div class="meta">quissy • 1.1m views</div>
+      <div class="desc">
+        scarewe gaeeym discord: https://discord.gg/Vg62FbYhMt become a member so i can buy drugs...
+      </div>
+    </div>
+    <div class="more">
+      <svg><use href="#more"/></svg>
+    </div>
+  </div>
+
+  <!-- ITEM 3 -->
+  <div class="history-item">
+    <div class="thumbnail">
+      <img src="https://i.imgur.com/4E5M8Xp.jpg">
+      <div class="progress"></div>
+      <div class="duration">43:07</div>
+    </div>
+    <div class="video-info">
+      <h3>Which AI Can Make the Most Addictive Game?</h3>
+      <div class="meta">quissy • 22k views</div>
+      <div class="desc">
+        addictive IF YOU WANT TO PLAY THE GAMES JOIN THE DISCORD AND LOOK IN #game-code...
+      </div>
+    </div>
+    <div class="more">
+      <svg><use href="#more"/></svg>
+    </div>
+  </div>
+
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+
+  <div class="search-box">
+    <svg><use href="#search"/></svg>
+    Search watch history
+  </div>
+
+  <div class="sidebar-action">
+    <svg><use href="#trash"/></svg>
+    Clear all watch history
+  </div>
+
+  <div class="sidebar-action">
+    <svg><use href="#pause"/></svg>
+    Pause watch history
+  </div>
+
+  <div class="sidebar-action">
+    <svg><use href="#settings"/></svg>
+    Manage all history
+  </div>
+
+  <div class="sidebar-section">Comments</div>
+  <div class="sidebar-section">Posts</div>
+  <div class="sidebar-section">Live chat</div>
+
+</div>
+
+</div>
+
+</body>
+</html>

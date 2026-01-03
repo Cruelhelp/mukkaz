@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>YouTube Replica</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root {
+  --bg: #0f0f0f;
+  --card: #181818;
+  --border: #2a2a2a;
+  --text: #ffffff;
+  --muted: #aaaaaa;
+  --accent: #3ea6ff;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.container {
+  max-width: 1100px;
+  margin: auto;
+  padding: 24px;
+}
+
+.video-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+/* CHANNEL + ACTIONS ROW */
+.top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.channel-info {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3ea6ff, #9b5cff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.channel-name {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.verified {
+  color: var(--accent);
+  font-size: 14px;
+}
+
+.subscribers {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ACTION GROUP */
+.action-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.subscribe-btn {
+  background: #fff;
+  color: #000;
+  padding: 8px 16px;
+  border-radius: 18px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+.action-btn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 14px;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+  opacity: 0.9;
+}
+
+.action-btn span {
+  color: var(--muted);
+}
+
+/* DESCRIPTION */
+.description {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 24px;
+}
+
+.desc-meta {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.description a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+/* COMMENTS */
+.comments-header {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.comment-box {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.comment-input {
+  flex: 1
+;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+  color: var(--muted);
+}
+
+.comment {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.comment-body {
+  flex: 1;
+}
+
+.pinned {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.comment-header {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.comment-meta {
+  font-size: 12px;
+  color: var(--muted);
+  margin-left: 6px;
+}
+
+.comment-text {
+  font-size: 14px;
+  margin: 6px 0;
+}
+
+.comment-actions {
+  display: flex;
+  gap: 14px;
+  font-size: 13px;
+  color: var(--muted);
+  align-items: center;
+}
+
+.comment-actions .icon {
+  width: 16px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- MATERIAL ICONS -->
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="like" viewBox="0 0 24 24">
+    <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/>
+  </symbol>
+
+  <symbol id="dislike" viewBox="0 0 24 24">
+    <path d="M15 3H6c-.83 0-1.54.5-1.84 1.22L1.14 11.27c-.09.23-.14.47-.14.73v2c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06L9.83 23l6.58-6.59c.36-.36.59-.86.59-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z"/>
+  </symbol>
+
+  <symbol id="share" viewBox="0 0 24 24">
+    <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.02-4.11c.54.5 1.25.81 2.07.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L7.91 9.81C7.38 9.31 6.67 9 5.85 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.82 0 1.53-.31 2.06-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/>
+  </symbol>
+
+  <symbol id="save" viewBox="0 0 24 24">
+    <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+  </symbol>
+
+  <symbol id="more" viewBox="0 0 24 24">
+    <circle cx="12" cy="5" r="2"/>
+    <circle cx="12" cy="12" r="2"/>
+    <circle cx="12" cy="19" r="2"/>
+  </symbol>
+</svg>
+
+<div class="container">
+
+<div class="video-title">I am a MENACE to CLANS in Rust</div>
+
+<div class="top-row">
+
+  <div class="channel-info">
+    <div class="avatar">W</div>
+    <div>
+      <div class="channel-name">
+        Welyn Highlights <span class="verified">✔</span>
+      </div>
+      <div class="subscribers">248k subscribers</div>
+    </div>
+  </div>
+
+  <div class="action-group">
+    <button class="subscribe-btn">Subscribe</button>
+
+    <div class="action-btn">
+      <svg class="icon"><use href="#like"/></svg>
+      <span>2.8k</span>
+    </div>
+
+    <div class="action-btn">
+      <svg class="icon"><use href="#dislike"/></svg>
+    </div>
+
+    <div class="action-btn">
+      <svg class="icon"><use href="#share"/></svg>
+      Share
+    </div>
+
+    <div class="action-btn">
+      <svg class="icon"><use href="#save"/></svg>
+      Save
+    </div>
+
+    <div class="action-btn">
+      <svg class="icon"><use href="#more"/></svg>
+    </div>
+  </div>
+
+</div>
+
+<div class="description">
+  <div class="desc-meta">77k views • 1 month ago</div>
+  GET YOUR PLUSHIE HERE:
+  <a href="#">https://youtooz.com/products/welyn-re...</a><br><br>
+  Exclusive Rust Drop Here:
+  <a href="#">https://kick.com/welyn</a>
+</div>
+
+<div class="comments-header">120 Comments</div>
+
+<div class="comment-box">
+  <div class="avatar">U</div>
+  <div class="comment-input">Add a comment...</div>
+</div>
+
+<div class="comment">
+  <div class="avatar">W</div>
+  <div class="comment-body">
+    <div class="pinned">Pinned by welyn highlights</div>
+    <div class="comment-header">
+      @welynhighlights
+      <span class="verified">✔</span>
+      <span class="comment-meta">1 month ago (edited)</span>
+    </div>
+    <div class="comment-text">
+      thanks for watching everyone, go get your limited edition plushie:
+      <a href="#">https://youtooz.com/products/welyn-reaper-plush-9-inch</a><br>
+      also listen to my new song:
+      <a href="#">https://www.youtube.com/watch?v=1f2YxFZgcuQ</a>
+    </div>
+    <div class="comment-actions">
+      <svg class="icon"><use href="#like"/></svg> 9
+      <span>Reply</span>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+console.log("YouTube layout updated: single-line actions");
+</script>
+
+</body>
+</html>

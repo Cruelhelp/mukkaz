@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https: https://videodelivery.net https://cloudflarestream.com; connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net https://api.cloudflare.com https://videodelivery.net https://embed.cloudflarestream.com; frame-src 'self' https://embed.cloudflarestream.com https://iframe.videodelivery.net; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
+  <title>My Videos - Mukkaz</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script src="config.local.js" onerror="console.warn('config.local.js not found - using defaults')"></script>
+  <script src="config.js"></script>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="youtube-redesign.css">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="age-gate.js"></script>
+  <script src="components.js"></script>
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="navbar-left">
+      <button class="nav-icon hamburger-btn" id="hamburgerBtn">
+        <span id="hamburgerIcon"></span>
+      </button>
+      <a href="index.html" class="logo">
+        <img src="logo.png" alt="Mukkaz" onerror="this.style.display='none'">
+      </a>
+    </div>
+
+    <div class="navbar-center">
+      <div class="search-container">
+        <input
+          type="text"
+          class="search-input"
+          id="searchInput"
+          placeholder="Search videos..."
+          autocomplete="off"
+        >
+        <button class="search-btn" id="searchBtn">
+          <span id="searchIcon"></span>
+        </button>
+        <div class="search-suggestions hidden" id="searchSuggestions">
+          <!-- Tag suggestions populated by JavaScript -->
+        </div>
+      </div>
+    </div>
+
+    <div class="navbar-right" id="navbarRight">
+      <!-- Loading skeleton -->
+      <div class="navbar-skeleton" id="navbarSkeleton">
+        <div class="skeleton-nav-icon"></div>
+        <div class="skeleton-nav-icon"></div>
+        <div class="skeleton-avatar"></div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <!-- Home Section -->
+    <div class="sidebar-section">
+      <a href="index.html" class="sidebar-item">
+        <span id="homeIcon"></span>
+        <span>Home</span>
+      </a>
+    </div>
+
+    <!-- Trending Section -->
+    <div class="sidebar-section">
+      <a href="index.html#trending" class="sidebar-item">
+        <span id="trendingIcon"></span>
+        <span>Trending</span>
+      </a>
+    </div>
+
+    <!-- Subscriptions Section -->
+    <div class="sidebar-section" id="subscriptionsSidebarSection">
+      <div class="sidebar-section-header">
+        <span id="subscriptionsIcon"></span>
+        <span>Subscriptions</span>
+      </div>
+      <div id="subscriptionsList">
+        <!-- Subscriptions loaded by JavaScript -->
+      </div>
+    </div>
+
+    <!-- History Section -->
+    <div class="sidebar-section">
+      <a href="index.html#history" class="sidebar-item">
+        <span id="historyIcon"></span>
+        <span>History</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="profile-container">
+      <h2 class="page-title">My Videos</h2>
+
+      <div class="video-grid" id="userVideos">
+        <!-- Videos loaded by JavaScript -->
+      </div>
+    </div>
+  </main>
+
+  <!-- Edit Video Modal -->
+  <div class="modal-overlay hidden" id="editVideoModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Edit Video</h2>
+        <button class="modal-close" id="closeEditModal">
+          <span id="closeEditIcon"></span>
+        </button>
+      </div>
+
+      <form class="auth-form" id="editVideoForm">
+        <div class="form-group">
+          <label class="form-label">Title</label>
+          <input
+            type="text"
+            class="form-input"
+            id="editVideoTitle"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea
+            class="form-input"
+            id="editVideoDescription"
+            rows="4"
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tags (Select all that apply)</label>
+          <div class="tags-container" id="editVideoTags">
+            <label class="tag-checkbox">
+              <input type="checkbox" name="edit_tags" value="big_batty">
+              <span>Big Batty</span>
+            </label>
+            <label class="tag-checkbox">
+              <input type="checkbox" name="edit_tags" value="phat_pussy">
+              <span>Phat Pussy</span>
+            </label>
+            <label class="tag-checkbox">
+              <input type="checkbox" name="edit_tags" value="backshot">
+              <span>Backshot</span>
+            </label>
+            <label class="tag-checkbox">
+              <input type="checkbox" name="edit_tags" value="hood_gyal">
+              <span>Hood Gyal</span>
+            </label>
+            <label class="tag-checkbox">
+              <input type="checkbox" name="edit_tags" value="tight_pussy">
+              <span>Tight Pussy</span>
+            </label>
+            <label class="tag-checkbox">
+              <input type="checkbox" name="edit_tags" value="kingston">
+              <span>Kingston</span>
+            </label>
+            <label class="tag-checkbox">
+              <input type="checkbox" name="edit_tags" value="st_andrew">
+              <span>St. Andrew</span>
+            </label>
+            <label class="tag-checkbox">
+              <input type="checkbox" name="edit_tags" value="st_catherine">
+              <span>St. Catherine</span>
+            </label>
+            <label class="tag-checkbox">
+              <input type="checkbox" name="edit_tags" value="portmore">
+              <span>Portmore</span>
+            </label>
+            <label class="tag-checkbox">
+              <input type="checkbox" name="edit_tags" value="spanish_town">
+              <span>Spanish Town</span>
+            </label>
+            <label class="tag-checkbox">
+              <input type="checkbox" name="edit_tags" value="montego_bay">
+              <span>Montego Bay</span>
+            </label>
+            <label class="tag-checkbox">
+              <input type="checkbox" name="edit_tags" value="mandeville">
+              <span>Mandeville</span>
+            </label>
+            <label class="tag-checkbox">
+              <input type="checkbox" name="edit_tags" value="ocho_rios">
+              <span>Ocho Rios</span>
+            </label>
+            <label class="tag-checkbox">
+              <input type="checkbox" name="edit_tags" value="bumper">
+              <span>Bumper</span>
+            </label>
+            <label class="tag-checkbox">
+              <input type="checkbox" name="edit_tags" value="cocky">
+              <span>Cocky</span>
+            </label>
+            <label class="tag-checkbox">
+              <input type="checkbox" name="edit_tags" value="fuck">
+              <span>Fuck</span>
+            </label>
+            <label class="tag-checkbox">
+              <input type="checkbox" name="edit_tags" value="breed">
+              <span>Breed</span>
+            </label>
+            <label class="tag-checkbox">
+              <input type="checkbox" name="edit_tags" value="suck">
+              <span>Suck</span>
+            </label>
+            <label class="tag-checkbox">
+              <input type="checkbox" name="edit_tags" value="badman">
+              <span>Badman</span>
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary">Save Changes</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="icons.js"></script>
+  <script src="utils.js"></script>
+  <script src="supabase.js"></script>
+  <script src="app.js"></script>
+  <script>
+    let currentUser = null;
+    let currentProfile = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await initializeApp();
+      await loadMyVideos();
+    });
+
+    async function loadMyVideos() {
+      currentUser = await getCurrentUser();
+
+      if (!currentUser) {
+        const container = document.querySelector('.profile-container');
+        container.innerHTML = `
+          <div style="text-align: center; padding: 4rem 2rem; background-color: var(--bg-secondary); border-radius: 12px;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">${getIcon('user')}</div>
+            <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">Sign In to View Your Videos</h3>
+            <p class="secondary" style="margin-bottom: 2rem; font-size: 1.1rem;">
+              Create an account to upload and manage your videos
+            </p>
+            <button class="btn-primary" onclick="openModal()" style="font-size: 1.1rem; padding: 1rem 3rem;">
+              Sign In / Sign Up
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      try {
+        currentProfile = await getProfile(currentUser.id);
+        await loadUserVideos();
+      } catch (error) {
+        console.error('Error loading videos:', error);
+        showNotification('Error loading videos', 'error');
+      }
+    }
+
+    async function loadUserVideos() {
+      const userVideos = document.getElementById('userVideos');
+
+      // Show skeleton loaders while loading
+      showSkeletonGrid(userVideos, 8);
+
+      try {
+        const allVideos = await getVideos();
+        const myVideos = allVideos.filter(v => v.user_id === currentUser.id);
+
+        if (myVideos.length === 0) {
+          userVideos.innerHTML = `
+            <div style="text-align: center; padding: 4rem 2rem; background-color: var(--bg-secondary); border-radius: 12px;">
+              <div style="font-size: 4rem; margin-bottom: 1rem;">📹</div>
+              <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">No Videos Yet</h3>
+              <p class="secondary" style="margin-bottom: 2rem;">You haven't uploaded any videos yet.</p>
+              <a href="upload.html" class="btn-primary" style="display: inline-block; font-size: 1.1rem; padding: 1rem 3rem;">
+                Upload Your First Video
+              </a>
+            </div>
+          `;
+          return;
+        }
+
+        // Clear skeleton loaders
+        userVideos.innerHTML = '';
+        myVideos.forEach(video => {
+          userVideos.appendChild(createVideoCard(video));
+        });
+      } catch (error) {
+        console.error('Error loading videos:', error);
+        userVideos.innerHTML = '<p class="secondary">Error loading videos</p>';
+      }
+    }
+
+    function createVideoCard(video) {
+      const profile = video.profiles || currentProfile;
+      const username = profile.username || 'Unknown';
+      const avatarUrl = profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`;
+      const thumbnailUrl = video.thumbnail_url || 'https://via.placeholder.com/320x180?text=No+Thumbnail';
+
+      const card = document.createElement('div');
+      card.className = 'video-card';
+      card.style.position = 'relative';
+
+      card.innerHTML = `
+        <a href="watch.html?v=${video.id}" style="display: block; text-decoration: none; color: inherit; width: 100%;">
+          <div class="video-thumbnail-container">
+            <img
+              src="${thumbnailUrl}"
+              alt="${video.title}"
+              class="video-thumbnail"
+              loading="lazy"
+            >
+          </div>
+          <div class="video-info">
+            <div class="video-avatar"><img src="${avatarUrl}" alt="${username}" class="avatar"></div>
+            <div class="video-details">
+              <h3 class="video-title">${video.title}</h3>
+              <div class="video-meta">
+                <div class="secondary">
+                  <span>${formatNumber(video.views_count || 0)} views</span>
+                  <span>•</span>
+                  <span>${timeSince(video.created_at)} ago</span>
+                </div>
+                ${video.tags ? `<div class="secondary">
+                  ${video.tags.split(',').slice(0, 2).map(tag => `<span style="background: rgba(255,255,255,0.08); padding: 1px 6px; border-radius: 3px; font-size: 11px; margin-right: 4px;">${tag.trim()}</span>`).join('')}
+                </div>` : ''}
+              </div>
+            </div>
+          </div>
+        </a>
+      `;
+
+      // Create quick share button
+      const shareBtn = document.createElement('button');
+      shareBtn.className = 'video-share-btn';
+      shareBtn.innerHTML = getIcon('share');
+      shareBtn.title = 'Copy link';
+      shareBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        shareVideo(video.id);
+      });
+
+      // Create 3-dot menu button
+      const menuBtn = document.createElement('button');
+      menuBtn.className = 'video-menu-btn';
+      menuBtn.innerHTML = '⋮';
+      menuBtn.title = 'More options';
+      menuBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleVideoMenu(card, video);
+      });
+
+      card.appendChild(shareBtn);
+      card.appendChild(menuBtn);
+
+      return card;
+    }
+
+    function toggleVideoMenu(card, video) {
+      // Remove any existing menus
+      document.querySelectorAll('.video-menu-dropdown').forEach(m => m.remove());
+
+      const menu = document.createElement('div');
+      menu.className = 'video-menu-dropdown show';
+
+      // Create menu items
+      const editItem = document.createElement('div');
+      editItem.className = 'video-menu-item';
+      editItem.innerHTML = `${getIcon('edit')} Edit`;
+      editItem.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openEditModal(video.id, video.title, video.description || '', video.tags || '');
+        menu.remove();
+      });
+
+      const deleteItem = document.createElement('div');
+      deleteItem.className = 'video-menu-item danger';
+      deleteItem.innerHTML = `${getIcon('delete')} Delete`;
+      deleteItem.addEventListener('click', (e) => {
+        e.stopPropagation();
+        confirmDeleteVideo(video.id);
+        menu.remove();
+      });
+
+      menu.appendChild(editItem);
+      menu.appendChild(deleteItem);
+      card.appendChild(menu);
+
+      // Close menu when clicking outside
+      setTimeout(() => {
+        document.addEventListener('click', function closeMenu(e) {
+          if (!menu.contains(e.target)) {
+            menu.remove();
+            document.removeEventListener('click', closeMenu);
+          }
+        });
+      }, 10);
+    }
+
+    async function shareVideo(videoId) {
+      const url = `${window.location.origin}/watch.html?v=${videoId}`;
+      try {
+        await navigator.clipboard.writeText(url);
+        showNotification('Link copied to clipboard! 🔗', 'success');
+      } catch (error) {
+        // Fallback for browsers that don't support clipboard API
+        const tempInput = document.createElement('input');
+        tempInput.value = url;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        showNotification('Link copied to clipboard! 🔗', 'success');
+      }
+    }
+
+    function confirmDeleteVideo(videoId) {
+      if (confirm('Are you sure you want to delete this video? This action cannot be undone.')) {
+        deleteVideo(videoId);
+      }
+    }
+
+    async function deleteVideo(videoId) {
+      try {
+        showNotification('Deleting video...', 'info');
+
+        const { error } = await supabaseClient
+          .from('videos')
+          .delete()
+          .eq('id', videoId);
+
+        if (error) throw error;
+
+        showNotification('Video deleted successfully', 'success');
+        await loadUserVideos();
+      } catch (error) {
+        console.error('Error deleting video:', error);
+        showNotification('Error deleting video', 'error');
+      }
+    }
+
+    // Edit video modal
+    let editingVideoId = null;
+
+    function openEditModal(videoId, title, description, tags) {
+      editingVideoId = videoId;
+
+      document.getElementById('editVideoTitle').value = title;
+      document.getElementById('editVideoDescription').value = description;
+
+      // Uncheck all tags first
+      document.querySelectorAll('input[name="edit_tags"]').forEach(checkbox => {
+        checkbox.checked = false;
+      });
+
+      // Check tags that are selected
+      if (tags) {
+        const tagArray = tags.split(',').map(t => t.trim()).filter(t => t);
+        tagArray.forEach(tag => {
+          const checkbox = document.querySelector(`input[name="edit_tags"][value="${tag}"]`);
+          if (checkbox) checkbox.checked = true;
+        });
+      }
+
+      document.getElementById('editVideoModal').classList.remove('hidden');
+    }
+
+    // Close edit modal
+    document.getElementById('closeEditModal').addEventListener('click', () => {
+      document.getElementById('editVideoModal').classList.add('hidden');
+      editingVideoId = null;
+    });
+
+    // Handle edit form submission
+    document.getElementById('editVideoForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      if (!editingVideoId) return;
+
+      const title = document.getElementById('editVideoTitle').value.trim();
+      const description = document.getElementById('editVideoDescription').value.trim();
+
+      // Get selected tags
+      const selectedTags = Array.from(document.querySelectorAll('input[name="edit_tags"]:checked'))
+        .map(cb => cb.value);
+
+      try {
+        showNotification('Updating video...', 'info');
+
+        await updateVideo(editingVideoId, {
+          title,
+          description,
+          tags: selectedTags
+        });
+
+        showNotification('Video updated successfully', 'success');
+        document.getElementById('editVideoModal').classList.add('hidden');
+        editingVideoId = null;
+
+        // Reload videos
+        await loadUserVideos();
+      } catch (error) {
+        console.error('Error updating video:', error);
+        showNotification('Error updating video', 'error');
+      }
+    });
+
+    // Add close edit icon
+    document.getElementById('closeEditIcon').innerHTML = getIcon('close');
+  </script>
+</body>
+</html>

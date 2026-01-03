@@ -3,14 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://vjs.zencdn.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://vjs.zencdn.net; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https:; connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net; frame-src 'none'; object-src 'none'; base-uri 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://vjs.zencdn.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://vjs.zencdn.net; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https: https://videodelivery.net https://cloudflarestream.com; connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net https://api.cloudflare.com https://videodelivery.net https://embed.cloudflarestream.com; frame-src 'self' https://embed.cloudflarestream.com https://iframe.videodelivery.net; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
   <title>Watch - Mukkaz</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <script src="config.local.js" onerror="console.warn('config.local.js not found - using defaults')"></script>
   <script src="config.js"></script>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="youtube-redesign.css">
   <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link href="https://vjs.zencdn.net/8.6.1/video-js.css" rel="stylesheet">
+  <script src="age-gate.js"></script>
+  <script src="components.js"></script>
 </head>
 <body>
   <!-- Navigation Bar -->
@@ -31,33 +34,62 @@
           class="search-input"
           id="searchInput"
           placeholder="Search videos..."
+          autocomplete="off"
         >
         <button class="search-btn" id="searchBtn">
           <span id="searchIcon"></span>
         </button>
+        <div class="search-suggestions hidden" id="searchSuggestions">
+          <!-- Tag suggestions populated by JavaScript -->
+        </div>
       </div>
     </div>
 
     <div class="navbar-right" id="navbarRight">
-      <!-- Content loaded by JavaScript -->
+      <!-- Loading skeleton -->
+      <div class="navbar-skeleton" id="navbarSkeleton">
+        <div class="skeleton-nav-icon"></div>
+        <div class="skeleton-nav-icon"></div>
+        <div class="skeleton-avatar"></div>
+      </div>
     </div>
   </nav>
 
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
+    <!-- Home Section -->
     <div class="sidebar-section">
       <a href="index.html" class="sidebar-item">
         <span id="homeIcon"></span>
         <span>Home</span>
       </a>
-      <a href="#trending" class="sidebar-item">
+    </div>
+
+    <!-- Trending Section -->
+    <div class="sidebar-section">
+      <a href="index.html#trending" class="sidebar-item">
         <span id="trendingIcon"></span>
         <span>Trending</span>
       </a>
     </div>
 
-    <div class="sidebar-section" id="authSection">
-      <!-- Content loaded by JavaScript -->
+    <!-- Subscriptions Section -->
+    <div class="sidebar-section" id="subscriptionsSidebarSection">
+      <div class="sidebar-section-header">
+        <span id="subscriptionsIcon"></span>
+        <span>Subscriptions</span>
+      </div>
+      <div id="subscriptionsList">
+        <!-- Subscriptions loaded by JavaScript -->
+      </div>
+    </div>
+
+    <!-- History Section -->
+    <div class="sidebar-section">
+      <a href="index.html#history" class="sidebar-item">
+        <span id="historyIcon"></span>
+        <span>History</span>
+      </a>
     </div>
   </aside>
 
@@ -77,73 +109,96 @@
           </video>
         </div>
 
-        <!-- Video Header -->
-        <div class="video-header">
-          <h1 class="video-title-main" id="videoTitle">Loading...</h1>
+        <!-- Title Skeleton -->
+        <div class="watch-title-skeleton" id="titleSkeleton">
+          <div class="skeleton-line" style="width: 70%; height: 24px;"></div>
+        </div>
 
-          <div class="video-stats-bar">
-            <div class="video-stats-left">
-              <span id="videoViews">0 views</span>
-              <span>•</span>
-              <span id="videoDate">Just now</span>
-            </div>
+        <!-- Video Title -->
+        <h1 class="watch-video-title hidden" id="videoTitle">Loading...</h1>
 
-            <div class="video-actions-bar">
-              <button class="action-btn-icon" id="likeBtn">
-                <span id="likeIcon"></span>
-                <span id="likeCount">0</span>
-              </button>
-              <button class="action-btn-icon" id="dislikeBtn">
-                <span id="dislikeIcon"></span>
-                <span id="dislikeCount">0</span>
-              </button>
-              <button class="action-btn-icon" id="shareBtn">
-                <span id="shareIcon"></span>
-                <span>Share</span>
-              </button>
-              <button class="action-btn-icon" id="bookmarkBtn">
-                <span id="bookmarkIcon"></span>
-                <span>Save</span>
-              </button>
-            </div>
+        <!-- Channel Skeleton -->
+        <div class="watch-channel-skeleton" id="channelSkeleton">
+          <div class="skeleton-avatar"></div>
+          <div style="flex: 1;">
+            <div class="skeleton-line" style="width: 150px; height: 16px; margin-bottom: 6px;"></div>
+            <div class="skeleton-line" style="width: 100px; height: 12px;"></div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <div class="skeleton-button"></div>
+            <div class="skeleton-button"></div>
+            <div class="skeleton-button"></div>
+            <div class="skeleton-button"></div>
+            <div class="skeleton-button"></div>
           </div>
         </div>
 
-        <!-- Channel Info Bar -->
-        <div class="channel-info-bar">
-          <div class="channel-info-left">
+        <!-- Channel + Actions Row -->
+        <div class="watch-top-row hidden" id="channelRow">
+          <div class="watch-channel-info">
             <a href="#" id="channelLink">
-              <img src="" alt="Channel" class="channel-avatar-large" id="channelAvatar">
+              <img src="" alt="Channel" class="watch-avatar avatar-loading" id="channelAvatar">
             </a>
-            <div class="channel-details">
-              <h3 id="channelName">Loading...</h3>
-              <p class="secondary" id="subscriberCount">0 subscribers</p>
+            <div>
+              <div class="watch-channel-name" id="channelName">Loading...</div>
+              <div class="watch-subscribers" id="subscriberCount">0 subscribers</div>
             </div>
           </div>
-          <div id="subscribeContainer"></div>
+
+          <div class="watch-action-group">
+            <div id="subscribeContainer"></div>
+
+            <button class="watch-action-btn" id="likeBtn">
+              <span id="likeIcon"></span>
+              <span id="likeCount">0</span>
+            </button>
+
+            <button class="watch-action-btn" id="dislikeBtn">
+              <span id="dislikeIcon"></span>
+            </button>
+
+            <button class="watch-action-btn" id="shareBtn">
+              <span id="shareIcon"></span>
+              <span>Share</span>
+            </button>
+
+            <button class="watch-action-btn" id="bookmarkBtn">
+              <span id="bookmarkIcon"></span>
+              <span>Save</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Description Skeleton -->
+        <div class="watch-desc-skeleton" id="descSkeleton">
+          <div class="skeleton-line" style="width: 200px; height: 14px; margin-bottom: 8px;"></div>
+          <div class="skeleton-line" style="width: 100%; height: 14px; margin-bottom: 6px;"></div>
+          <div class="skeleton-line" style="width: 90%; height: 14px; margin-bottom: 6px;"></div>
+          <div class="skeleton-line" style="width: 80%; height: 14px;"></div>
         </div>
 
         <!-- Video Description -->
-        <div class="video-description collapsed" id="videoDescription">
-          Loading...
+        <div class="watch-description hidden" id="videoDescription">
+          <div class="watch-desc-meta">
+            <span id="videoViews">0 views</span> • <span id="videoDate">Just now</span>
+          </div>
+          <div id="videoDescriptionText">Loading...</div>
         </div>
-        <button class="description-toggle" id="descriptionToggle">Show more</button>
 
         <!-- Comments Section -->
-        <div class="comments-section">
-          <div class="comments-header">
-            <span id="commentsHeader">0 Comments</span>
-          </div>
+        <div class="watch-comments-section">
+          <div class="watch-comments-header" id="commentsHeader">0 Comments</div>
 
-          <div class="comment-form" id="addCommentSection" style="display: none;">
-            <img src="" alt="Your avatar" class="comment-avatar" id="userCommentAvatar">
-            <div style="flex: 1;">
+          <div class="watch-comment-box" id="addCommentSection" style="display: none;">
+            <img src="" alt="Your avatar" class="watch-avatar avatar-loading" id="userCommentAvatar">
+            <div class="watch-comment-input-wrapper">
               <textarea
+                class="watch-comment-input"
                 placeholder="Add a comment..."
                 id="commentInput"
                 rows="1"
               ></textarea>
-              <div class="comment-form-actions hidden" id="commentFormActions">
+              <div class="watch-comment-actions hidden" id="commentFormActions">
                 <button class="btn-secondary" id="cancelCommentBtn">Cancel</button>
                 <button class="btn-primary" id="submitCommentBtn">Comment</button>
               </div>
@@ -159,7 +214,6 @@
       <!-- Suggested Videos Sidebar -->
       <aside class="watch-sidebar">
         <div class="suggested-videos">
-          <h3>Up Next</h3>
           <div id="suggestedVideosList">
             <!-- Skeleton loaders while loading -->
             <div class="video-card-horizontal skeleton-horizontal">
@@ -267,7 +321,6 @@
   <script src="icons.js"></script>
   <script src="utils.js"></script>
   <script src="supabase.js"></script>
-  <script src="components.js"></script>
   <script src="app.js"></script>
   <script>
     let currentVideo = null;
@@ -277,6 +330,9 @@
     document.addEventListener('DOMContentLoaded', async () => {
       await initializeApp();
       currentUser = await getCurrentUser();
+
+      // Initialize category filters
+      initCategoryFilters();
 
       // Auto-collapse sidebar on watch page (desktop only)
       if (window.innerWidth > 1024) {
@@ -314,7 +370,16 @@
         if (currentUser) {
           document.getElementById('addCommentSection').style.display = 'flex';
           const profile = await getProfile(currentUser.id);
-          document.getElementById('userCommentAvatar').src = profile.avatar_url;
+
+          // Load user avatar with loading state
+          const userAvatar = document.getElementById('userCommentAvatar');
+          const userAvatarUrl = profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.email}`;
+          userAvatar.onload = () => userAvatar.classList.remove('avatar-loading');
+          userAvatar.onerror = () => {
+            userAvatar.classList.remove('avatar-loading');
+            userAvatar.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.email || 'default'}`;
+          };
+          userAvatar.src = userAvatarUrl;
 
           // Check bookmark status
           const bookmarked = await isBookmarked(videoId);
@@ -331,14 +396,43 @@
     async function displayVideo(video) {
       const profile = video.profiles || {};
 
+      // Populate content first (while still hidden)
       document.getElementById('videoTitle').textContent = video.title;
       document.getElementById('videoViews').textContent = `${formatNumber(video.views_count || 0)} views`;
       document.getElementById('videoDate').textContent = timeSince(new Date(video.created_at));
-      document.getElementById('videoDescription').textContent = video.description || 'No description available.';
+      document.getElementById('videoDescriptionText').innerHTML = video.description || 'No description available.';
       document.getElementById('channelName').textContent = profile.username || 'Unknown';
-      document.getElementById('channelAvatar').src = profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username}`;
       document.getElementById('subscriberCount').textContent = `${formatNumber(profile.subscribers_count || 0)} subscribers`;
       document.getElementById('channelLink').href = `profile.html?id=${video.user_id}`;
+
+      // Load channel avatar and show content when loaded
+      const channelAvatar = document.getElementById('channelAvatar');
+      const avatarUrl = profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username}`;
+
+      channelAvatar.onload = () => {
+        channelAvatar.classList.remove('avatar-loading');
+        // Hide skeletons and show actual content
+        document.getElementById('titleSkeleton').style.display = 'none';
+        document.getElementById('channelSkeleton').style.display = 'none';
+        document.getElementById('descSkeleton').style.display = 'none';
+        document.getElementById('videoTitle').classList.remove('hidden');
+        document.getElementById('channelRow').classList.remove('hidden');
+        document.getElementById('videoDescription').classList.remove('hidden');
+      };
+
+      channelAvatar.onerror = () => {
+        channelAvatar.classList.remove('avatar-loading');
+        channelAvatar.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username || 'default'}`;
+        // Show content even if avatar failed
+        document.getElementById('titleSkeleton').style.display = 'none';
+        document.getElementById('channelSkeleton').style.display = 'none';
+        document.getElementById('descSkeleton').style.display = 'none';
+        document.getElementById('videoTitle').classList.remove('hidden');
+        document.getElementById('channelRow').classList.remove('hidden');
+        document.getElementById('videoDescription').classList.remove('hidden');
+      };
+
+      channelAvatar.src = avatarUrl;
 
       // Add subscribe button
       if (currentUser && currentUser.id !== video.user_id) {
@@ -354,41 +448,117 @@
         preload: 'auto'
       });
 
-      player.src({ type: 'video/mp4', src: video.url });
+      // Check if video uses Cloudflare Stream (new) or direct URL (legacy)
+      if (video.stream_id) {
+        // Use Cloudflare Stream HLS
+        player.src({
+          type: 'application/x-mpegURL',
+          src: `https://videodelivery.net/${video.stream_id}/manifest/video.m3u8`
+        });
+      } else if (video.url) {
+        // Legacy: Direct video URL
+        player.src({ type: 'video/mp4', src: video.url });
+      } else {
+        showNotification('Video source not found', 'error');
+      }
 
-      // Track view
+      // Track view and watch history
       let viewCounted = false;
+      let historyAdded = false;
       player.on('timeupdate', async () => {
-        if (!viewCounted && player.currentTime() > 5) {
+        const currentTime = player.currentTime();
+        const duration = player.duration();
+        const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+
+        if (!viewCounted && currentTime > 5) {
           viewCounted = true;
           await incrementViews(video.id);
+        }
+
+        // Add to watch history after 10 seconds
+        if (!historyAdded && currentTime > 10 && currentUser) {
+          historyAdded = true;
+          await addToWatchHistory(video.id, Math.floor(progress));
+        }
+
+        // Update watch history progress every 30 seconds
+        if (currentUser && historyAdded && Math.floor(currentTime) % 30 === 0) {
+          await addToWatchHistory(video.id, Math.floor(progress));
         }
       });
     }
 
-    async function loadSuggestedVideos() {
+    let allVideos = [];
+    let currentCategory = 'all';
+
+    async function loadSuggestedVideos(category = 'all') {
       const container = document.getElementById('suggestedVideosList');
 
       try {
-        const videos = await getVideos();
-        const suggested = videos.filter(v => v.id !== currentVideo.id).slice(0, 20);
+        if (allVideos.length === 0) {
+          allVideos = await getVideos();
+        }
+
+        let filteredVideos = allVideos.filter(v => v.id !== currentVideo.id);
+
+        // Filter by category/tag if not 'all'
+        if (category !== 'all') {
+          filteredVideos = filteredVideos.filter(v => {
+            // Support both single category field and tags array
+            if (v.tags) {
+              // If tags is a string (comma-separated), split it
+              const tagsArray = typeof v.tags === 'string'
+                ? v.tags.split(',').map(t => t.trim().toLowerCase())
+                : (Array.isArray(v.tags) ? v.tags.map(t => t.toLowerCase()) : []);
+              return tagsArray.includes(category.toLowerCase());
+            }
+            // Fallback to single category field
+            return v.category && v.category.toLowerCase() === category.toLowerCase();
+          });
+        }
+
+        const suggested = filteredVideos.slice(0, 20);
 
         container.innerHTML = '';
-        suggested.forEach(video => {
-          const card = createVideoCard(video, 'horizontal');
-          container.appendChild(card);
-        });
+        if (suggested.length === 0) {
+          container.innerHTML = '<p class="secondary" style="padding: 1rem; text-align: center;">No videos found in this category</p>';
+        } else {
+          suggested.forEach(video => {
+            const card = createVideoCard(video, 'horizontal');
+            container.appendChild(card);
+          });
+        }
       } catch (error) {
         console.error('Error loading suggested videos:', error);
         container.innerHTML = '<p class="secondary">Failed to load suggestions</p>';
       }
     }
 
+    // Category filter functionality
+    function initCategoryFilters() {
+      const categoryBtns = document.querySelectorAll('.category-btn');
+
+      categoryBtns.forEach(btn => {
+        btn.addEventListener('click', async () => {
+          // Remove active class from all buttons
+          categoryBtns.forEach(b => b.classList.remove('active'));
+
+          // Add active class to clicked button
+          btn.classList.add('active');
+
+          // Get category and load videos
+          const category = btn.dataset.category;
+          currentCategory = category;
+          await loadSuggestedVideos(category);
+        });
+      });
+    }
+
     async function updateVoteCounts() {
       try {
         const { likes, dislikes } = await getVoteCounts(currentVideo.id);
         document.getElementById('likeCount').textContent = likes;
-        document.getElementById('dislikeCount').textContent = dislikes;
+        // Note: YouTube doesn't show dislike counts publicly
 
         // Highlight user's vote
         if (currentUser && currentVideo.video_votes) {
@@ -413,7 +583,7 @@
       commentsHeader.textContent = `${comments.length} Comment${comments.length !== 1 ? 's' : ''}`;
 
       if (comments.length === 0) {
-        commentsList.innerHTML = '<p class="secondary">No comments yet. Be the first to comment!</p>';
+        commentsList.innerHTML = '<p class="secondary" style="text-align: center; padding: 2rem; color: var(--text-secondary);">No comments yet. Be the first to comment!</p>';
         return;
       }
 
@@ -425,18 +595,30 @@
         const timeAgo = escapeHtml(timeSince(comment.created_at));
 
         return `
-          <div class="comment">
-            <img src="${avatarUrl}" alt="${username}" class="avatar md">
-            <div class="comment-content">
-              <div class="comment-header">
-                <span class="comment-author">${username}</span>
-                <span class="comment-time">${timeAgo} ago</span>
+          <div class="watch-comment">
+            <img src="${avatarUrl}" alt="${username}" class="watch-avatar avatar-loading" onload="this.classList.remove('avatar-loading')" onerror="this.classList.remove('avatar-loading'); this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(username)}';">
+            <div class="watch-comment-body">
+              <div class="watch-comment-header">
+                <span class="watch-comment-author">@${username}</span>
+                <span class="watch-comment-time">${timeAgo} ago</span>
               </div>
-              <p class="comment-text">${commentText}</p>
+              <div class="watch-comment-text">${commentText}</div>
+              <div class="watch-comment-actions-row">
+                <button class="watch-comment-action" onclick="likeComment('${comment.id}')">
+                  ${getIcon('like')}
+                  <span>0</span>
+                </button>
+                <button class="watch-comment-action">Reply</button>
+              </div>
             </div>
           </div>
         `;
       }).join('');
+    }
+
+    function likeComment(commentId) {
+      // Placeholder for like comment functionality
+      showNotification('Comment like feature coming soon!', 'info');
     }
 
     // Like/Dislike handlers
@@ -493,8 +675,21 @@
     });
 
     // Share button handler
-    document.getElementById('shareBtn').addEventListener('click', () => {
-      openShareModal(currentVideo.id, currentVideo.title);
+    document.getElementById('shareBtn').addEventListener('click', async () => {
+      const url = `${window.location.origin}/watch.html?v=${currentVideo.id}`;
+      try {
+        await navigator.clipboard.writeText(url);
+        showNotification('Link copied to clipboard!', 'success');
+      } catch (error) {
+        // Fallback for browsers that don't support clipboard API
+        const tempInput = document.createElement('input');
+        tempInput.value = url;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        showNotification('Link copied to clipboard!', 'success');
+      }
     });
 
     // Bookmark button handler
@@ -506,19 +701,7 @@
       await toggleBookmark(currentVideo.id, document.getElementById('bookmarkBtn'));
     });
 
-    // Description toggle
-    document.getElementById('descriptionToggle').addEventListener('click', () => {
-      const desc = document.getElementById('videoDescription');
-      const btn = document.getElementById('descriptionToggle');
-
-      if (desc.classList.contains('collapsed')) {
-        desc.classList.remove('collapsed');
-        btn.textContent = 'Show less';
-      } else {
-        desc.classList.add('collapsed');
-        btn.textContent = 'Show more';
-      }
-    });
+    // Description is always expanded in new layout
 
     // Comment input focus handlers
     const commentInput = document.getElementById('commentInput');
@@ -526,6 +709,27 @@
 
     commentInput.addEventListener('focus', () => {
       commentFormActions.classList.remove('hidden');
+    });
+
+    // Handle Enter key to submit comment (Shift+Enter for new line)
+    commentInput.addEventListener('keydown', async (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        const text = commentInput.value.trim();
+        if (!text) return;
+
+        try {
+          const comment = await addComment(currentVideo.id, text);
+          currentVideo.comments = [comment, ...(currentVideo.comments || [])];
+          loadComments(currentVideo.comments);
+          commentInput.value = '';
+          commentFormActions.classList.add('hidden');
+          showNotification('Comment added!', 'success');
+        } catch (error) {
+          console.error('Error adding comment:', error);
+          showNotification('Error adding comment', 'error');
+        }
+      }
     });
 
     document.getElementById('cancelCommentBtn').addEventListener('click', () => {

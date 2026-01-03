@@ -3,13 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https:; connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net; frame-src 'none'; object-src 'none'; base-uri 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https: https://videodelivery.net https://cloudflarestream.com; connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net https://api.cloudflare.com https://videodelivery.net https://embed.cloudflarestream.com; frame-src 'self' https://embed.cloudflarestream.com https://iframe.videodelivery.net; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
   <title>Mukkaz - Home</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <script src="config.local.js" onerror="console.warn('config.local.js not found - using defaults')"></script>
   <script src="config.js"></script>
   <link rel="stylesheet" href="styles.css">
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="youtube-redesign.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <script src="age-gate.js"></script>
+  <script src="components.js"></script>
 </head>
 <body>
   <!-- Navigation Bar -->
@@ -24,51 +27,205 @@
     </div>
 
     <div class="navbar-center">
-      <div class="search-container">
+      <div class="search-container" style="position: relative;">
         <input
           type="text"
           class="search-input"
           id="searchInput"
           placeholder="Search videos..."
+          autocomplete="off"
         >
+        <button class="search-clear-btn" id="searchClearBtn" style="display: none;">
+          <span>✕</span>
+        </button>
         <button class="search-btn" id="searchBtn">
           <span id="searchIcon"></span>
         </button>
+        <div class="search-suggestions hidden" id="searchSuggestions">
+          <!-- Tag suggestions populated by JavaScript -->
+        </div>
       </div>
     </div>
 
     <div class="navbar-right" id="navbarRight">
-      <!-- Content loaded by JavaScript -->
+      <!-- Loading skeleton -->
+      <div class="navbar-skeleton" id="navbarSkeleton">
+        <div class="skeleton-nav-icon"></div>
+        <div class="skeleton-nav-icon"></div>
+        <div class="skeleton-avatar"></div>
+      </div>
     </div>
   </nav>
 
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
+    <!-- Home Section -->
     <div class="sidebar-section">
-      <a href="index.html" class="sidebar-item active">
+      <a href="index.html" class="sidebar-item active" id="homeLink">
         <span id="homeIcon"></span>
         <span>Home</span>
       </a>
-      <a href="#trending" class="sidebar-item">
+    </div>
+
+    <!-- Trending Section -->
+    <div class="sidebar-section">
+      <a href="#" class="sidebar-item" id="trendingLink">
         <span id="trendingIcon"></span>
         <span>Trending</span>
       </a>
     </div>
 
-    <div class="sidebar-section" id="authSection">
-      <!-- Content loaded by JavaScript -->
+    <!-- Subscriptions Section -->
+    <div class="sidebar-section" id="subscriptionsSidebarSection">
+      <div class="sidebar-section-header">
+        <span id="subscriptionsIcon"></span>
+        <span>Subscriptions</span>
+      </div>
+      <div id="subscriptionsList">
+        <!-- Subscriptions loaded by JavaScript -->
+      </div>
+    </div>
+
+    <!-- History Section -->
+    <div class="sidebar-section">
+      <a href="#" class="sidebar-item" id="historyLink">
+        <span id="historyIcon"></span>
+        <span>History</span>
+      </a>
     </div>
   </aside>
 
   <!-- Main Content -->
   <main class="main-content">
-    <h2 class="page-title">Recommended Videos</h2>
+    <!-- Category Filter Bar -->
+    <div class="category-filter-wrapper">
+      <button class="category-scroll-btn category-scroll-left" id="scrollLeft">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+          <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+        </svg>
+      </button>
+      <div class="category-filter-bar-horizontal" id="categoryBar">
+        <button class="category-btn active" data-category="all">All</button>
+        <button class="category-btn" data-category="big_batty">Big Batty</button>
+        <button class="category-btn" data-category="phat_pussy">Phat Pussy</button>
+        <button class="category-btn" data-category="backshot">Backshot</button>
+        <button class="category-btn" data-category="hood_gyal">Hood Gyal</button>
+        <button class="category-btn" data-category="tight_pussy">Tight Pussy</button>
+        <button class="category-btn" data-category="kingston">Kingston</button>
+        <button class="category-btn" data-category="st_andrew">St. Andrew</button>
+        <button class="category-btn" data-category="st_catherine">St. Catherine</button>
+        <button class="category-btn" data-category="portmore">Portmore</button>
+        <button class="category-btn" data-category="spanish_town">Spanish Town</button>
+        <button class="category-btn" data-category="montego_bay">Montego Bay</button>
+        <button class="category-btn" data-category="mandeville">Mandeville</button>
+        <button class="category-btn" data-category="ocho_rios">Ocho Rios</button>
+        <button class="category-btn" data-category="bumper">Bumper</button>
+        <button class="category-btn" data-category="cocky">Cocky</button>
+        <button class="category-btn" data-category="fuck">Fuck</button>
+        <button class="category-btn" data-category="breed">Breed</button>
+        <button class="category-btn" data-category="suck">Suck</button>
+        <button class="category-btn" data-category="badman">Badman</button>
+      </div>
+      <button class="category-scroll-btn category-scroll-right" id="scrollRight">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+          <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+        </svg>
+      </button>
+      <button class="filter-dropdown-btn" id="filterDropdownBtn" title="Filter options">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+          <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
+        </svg>
+      </button>
+      <div class="filter-dropdown-menu" id="filterDropdownMenu">
+        <div style="margin-bottom: 12px; font-weight: 500; font-size: 14px;">Display Options</div>
+        <div class="filter-option">
+          <label>
+            <input type="checkbox" id="filterShowThumbnails" checked> Show Thumbnails
+          </label>
+        </div>
+        <div class="filter-option">
+          <label>
+            <input type="checkbox" id="filterCompactView"> Compact View
+          </label>
+        </div>
+        <div class="filter-option">
+          <label>
+            <input type="checkbox" id="filterAutoplay"> Autoplay Videos
+          </label>
+        </div>
+        <div style="margin: 12px 0; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px; font-weight: 500; font-size: 14px;">Sort By</div>
+        <div class="filter-option">
+          <label>
+            <input type="radio" name="sortBy" value="newest" checked> Newest First
+          </label>
+        </div>
+        <div class="filter-option">
+          <label>
+            <input type="radio" name="sortBy" value="popular"> Most Popular
+          </label>
+        </div>
+        <div class="filter-option">
+          <label>
+            <input type="radio" name="sortBy" value="views"> Most Viewed
+          </label>
+        </div>
+      </div>
+    </div>
 
-    <!-- Video Grid -->
-    <div class="video-grid" id="videoGrid">
-      <!-- Videos loaded by JavaScript -->
-      <div class="loader">
-        <div class="spinner"></div>
+    <!-- Video Grid (Home) -->
+    <div id="homeContent">
+      <div class="video-grid" id="videoGrid">
+        <!-- Videos loaded by JavaScript -->
+      </div>
+    </div>
+
+    <!-- Trending Section -->
+    <div class="content-section hidden" id="trendingSection">
+      <h2 class="section-title">Trending Videos</h2>
+      <div class="video-grid" id="trendingGrid">
+        <!-- Trending videos loaded by JavaScript -->
+      </div>
+    </div>
+
+    <!-- History Section -->
+    <div class="content-section hidden" id="historySection">
+      <div class="history-layout">
+        <div class="history-main">
+          <h2 class="history-page-title">Watch history</h2>
+
+          <div class="history-filters">
+            <div class="history-chip active" data-filter="all">All</div>
+            <div class="history-chip" data-filter="videos">Videos</div>
+            <div class="history-chip" data-filter="shorts">Shorts</div>
+            <div class="history-chip" data-filter="live">Live</div>
+          </div>
+
+          <div id="historyContent">
+            <!-- History content loaded by JavaScript -->
+          </div>
+        </div>
+
+        <div class="history-sidebar">
+          <div class="history-search-box">
+            <span id="historySearchIcon"></span>
+            <span>Search watch history</span>
+          </div>
+
+          <div class="history-action" id="clearHistoryBtn">
+            <span id="clearHistoryIcon"></span>
+            <span>Clear all watch history</span>
+          </div>
+
+          <div class="history-action" id="pauseHistoryBtn">
+            <span id="pauseHistoryIcon"></span>
+            <span>Pause watch history</span>
+          </div>
+
+          <div class="history-action" id="manageHistoryBtn">
+            <span id="manageHistoryIcon"></span>
+            <span>Manage all history</span>
+          </div>
+        </div>
       </div>
     </div>
   </main>
@@ -158,7 +315,6 @@
   <script src="icons.js"></script>
   <script src="utils.js"></script>
   <script src="supabase.js"></script>
-  <script src="components.js"></script>
   <script src="app.js"></script>
   <script>
     let currentUser = null;
@@ -167,20 +323,506 @@
     document.addEventListener('DOMContentLoaded', async () => {
       await initializeApp();
       currentUser = await getCurrentUser();
+      await loadMostUsedTags();
       await loadVideos();
+      initHomeCategoryFilters();
+      initCategoryScroll();
+      initFilterDropdown();
+      initSidebarNavigation();
+      handleHashNavigation();
     });
 
-    async function loadVideos() {
+    // Handle hash-based navigation
+    function handleHashNavigation() {
+      const hash = window.location.hash.substring(1); // Remove #
+
+      if (hash === 'trending') {
+        document.getElementById('trendingLink').click();
+      } else if (hash === 'history') {
+        document.getElementById('historyLink').click();
+      }
+
+      // Listen for hash changes
+      window.addEventListener('hashchange', () => {
+        const newHash = window.location.hash.substring(1);
+        if (newHash === 'trending') {
+          document.getElementById('trendingLink').click();
+        } else if (newHash === 'history') {
+          document.getElementById('historyLink').click();
+        } else if (!newHash) {
+          document.getElementById('homeLink').click();
+        }
+      });
+    }
+
+    // Sidebar navigation handler
+    function initSidebarNavigation() {
+      const homeLink = document.getElementById('homeLink');
+      const trendingLink = document.getElementById('trendingLink');
+      const historyLink = document.getElementById('historyLink');
+
+      const homeContent = document.getElementById('homeContent');
+      const trendingSection = document.getElementById('trendingSection');
+      const historySection = document.getElementById('historySection');
+      const categoryFilter = document.querySelector('.category-filter-wrapper');
+      const filterDropdown = document.getElementById('filterDropdownBtn');
+
+      function showSection(section) {
+        // Hide all sections
+        homeContent.classList.add('hidden');
+        trendingSection.classList.add('hidden');
+        historySection.classList.add('hidden');
+
+        // Hide category filter and filter dropdown (only for home)
+        if (categoryFilter) categoryFilter.classList.add('hidden');
+        if (filterDropdown) filterDropdown.style.display = 'none';
+
+        // Remove active from all sidebar items
+        document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+
+        // Show selected section
+        section.classList.remove('hidden');
+      }
+
+      homeLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        homeContent.classList.remove('hidden');
+        trendingSection.classList.add('hidden');
+        historySection.classList.add('hidden');
+
+        // Show category filter and filter dropdown for home
+        if (categoryFilter) {
+          categoryFilter.classList.remove('hidden');
+          categoryFilter.style.display = '';
+        }
+        if (filterDropdown) {
+          filterDropdown.style.display = 'flex';
+        }
+
+        homeLink.classList.add('active');
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+          if (item !== homeLink) item.classList.remove('active');
+        });
+        history.pushState(null, null, '#');
+      });
+
+      trendingLink.addEventListener('click', async (e) => {
+        e.preventDefault();
+        showSection(trendingSection);
+        trendingLink.classList.add('active');
+
+        // Show category filter and filter dropdown for trending
+        if (categoryFilter) {
+          categoryFilter.classList.remove('hidden');
+          categoryFilter.style.display = '';
+        }
+        if (filterDropdown) {
+          filterDropdown.style.display = 'flex';
+        }
+
+        await loadTrendingContent();
+        history.pushState(null, null, '#trending');
+      });
+
+      historyLink.addEventListener('click', async (e) => {
+        e.preventDefault();
+        showSection(historySection);
+        historyLink.classList.add('active');
+
+        // Explicitly hide category filter and filter dropdown
+        if (categoryFilter) {
+          categoryFilter.style.display = 'none';
+        }
+        if (filterDropdown) {
+          filterDropdown.style.display = 'none';
+        }
+
+        await loadHistoryContent();
+        history.pushState(null, null, '#history');
+      });
+
+      // Load subscriptions in sidebar
+      loadSubscriptions();
+    }
+
+    // Load Trending Content
+    async function loadTrendingContent() {
+      const trendingGrid = document.getElementById('trendingGrid');
+      showSkeletonGrid(trendingGrid, 12);
+
+      try {
+        const videos = await getVideos();
+        const trending = videos
+          .sort((a, b) => (b.views_count || 0) - (a.views_count || 0))
+          .slice(0, 24);
+
+        if (trending.length === 0) {
+          trendingGrid.innerHTML = '<p class="secondary">No trending videos available</p>';
+          return;
+        }
+
+        trendingGrid.innerHTML = '';
+        trending.forEach(video => {
+          const card = createVideoCard(video, 'grid');
+          trendingGrid.appendChild(card);
+        });
+      } catch (error) {
+        console.error('Error loading trending:', error);
+        trendingGrid.innerHTML = '<p class="secondary">Error loading trending videos</p>';
+      }
+    }
+
+    // Load History Icons
+    function loadHistoryIcons() {
+      const historySearchIcon = document.getElementById('historySearchIcon');
+      const clearHistoryIcon = document.getElementById('clearHistoryIcon');
+      const pauseHistoryIcon = document.getElementById('pauseHistoryIcon');
+      const manageHistoryIcon = document.getElementById('manageHistoryIcon');
+
+      if (historySearchIcon) historySearchIcon.innerHTML = getIcon('search');
+      if (clearHistoryIcon) clearHistoryIcon.innerHTML = getIcon('delete');
+      if (pauseHistoryIcon) pauseHistoryIcon.innerHTML = getIcon('close');
+      if (manageHistoryIcon) manageHistoryIcon.innerHTML = getIcon('edit');
+    }
+
+    // Load History Content (Watched Videos)
+    async function loadHistoryContent() {
+      const historyContent = document.getElementById('historyContent');
+
+      // Load icons
+      loadHistoryIcons();
+
+      if (!currentUser) {
+        historyContent.innerHTML = `
+          <div style="text-align: center; padding: 4rem 2rem; background-color: var(--bg-secondary); border-radius: 12px;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">${getIcon('history')}</div>
+            <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">Sign In to View Watch History</h3>
+            <p class="secondary" style="margin-bottom: 2rem;">Keep track of what you watch and discover new videos</p>
+            <button class="btn-primary" onclick="openModal()">Sign In / Sign Up</button>
+          </div>
+        `;
+        return;
+      }
+
+      try {
+        // TODO: Implement watch history tracking in database
+        // For now, show recent videos as placeholder
+        const videos = await getVideos();
+
+        if (!videos || videos.length === 0) {
+          historyContent.innerHTML = `
+            <div style="text-align: center; padding: 4rem 2rem; background-color: var(--bg-secondary); border-radius: 12px;">
+              <div style="font-size: 4rem; margin-bottom: 1rem;">${getIcon('history')}</div>
+              <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">No Watch History</h3>
+              <p class="secondary">Videos you watch will appear here</p>
+            </div>
+          `;
+          return;
+        }
+
+        // Group videos by date
+        const groupedVideos = groupVideosByDate(videos.slice(0, 20));
+
+        let html = '';
+        for (const [dateLabel, vids] of Object.entries(groupedVideos)) {
+          html += `<div class="history-section-title">${dateLabel}</div>`;
+          vids.forEach(video => {
+            const profile = video.profiles || {};
+            const username = profile.username || 'Unknown';
+            const progress = Math.random() * 100; // TODO: Get actual progress from database
+
+            html += `
+              <div class="history-video-item">
+                <div class="history-thumbnail" onclick="window.location.href='watch.html?v=${video.id}'">
+                  <img src="${video.thumbnail_url || 'https://via.placeholder.com/280x158?text=Video'}" alt="${escapeHtml(video.title)}">
+                  <div class="history-progress" style="width: ${progress}%"></div>
+                  ${video.duration ? `<div class="history-duration">${formatDuration(video.duration)}</div>` : ''}
+                </div>
+                <div class="history-video-info">
+                  <h3 class="history-video-title" onclick="window.location.href='watch.html?v=${video.id}'">${escapeHtml(video.title)}</h3>
+                  <div class="history-video-meta">${escapeHtml(username)} • ${formatNumber(video.views_count || 0)} views</div>
+                  <div class="history-video-desc">${escapeHtml(video.description || 'No description available')}</div>
+                </div>
+                <div class="history-video-more" onclick="showHistoryVideoMenu('${video.id}')">
+                  ${getIcon('more')}
+                </div>
+              </div>
+            `;
+          });
+        }
+
+        historyContent.innerHTML = html;
+
+        // Initialize filter chips
+        initHistoryFilters();
+      } catch (error) {
+        console.error('Error loading history:', error);
+        historyContent.innerHTML = '<p class="secondary">Error loading watch history</p>';
+      }
+    }
+
+    // Group videos by date
+    function groupVideosByDate(videos) {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const weekAgo = new Date(today);
+      weekAgo.setDate(weekAgo.getDate() - 7);
+
+      const groups = {
+        'Today': [],
+        'Yesterday': [],
+        'This week': [],
+        'Older': []
+      };
+
+      videos.forEach(video => {
+        const videoDate = new Date(video.created_at);
+        const videoDay = new Date(videoDate.getFullYear(), videoDate.getMonth(), videoDate.getDate());
+
+        if (videoDay.getTime() === today.getTime()) {
+          groups['Today'].push(video);
+        } else if (videoDay.getTime() === yesterday.getTime()) {
+          groups['Yesterday'].push(video);
+        } else if (videoDay >= weekAgo) {
+          groups['This week'].push(video);
+        } else {
+          groups['Older'].push(video);
+        }
+      });
+
+      // Remove empty groups
+      Object.keys(groups).forEach(key => {
+        if (groups[key].length === 0) delete groups[key];
+      });
+
+      return groups;
+    }
+
+    // Initialize history filter chips
+    function initHistoryFilters() {
+      const chips = document.querySelectorAll('.history-chip');
+      chips.forEach(chip => {
+        chip.addEventListener('click', () => {
+          chips.forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          // TODO: Implement filtering by type (all, videos, shorts, live)
+        });
+      });
+    }
+
+    // Show history video menu
+    function showHistoryVideoMenu(videoId) {
+      console.log('Show menu for video:', videoId);
+      // TODO: Implement video menu (remove from history, not interested, etc.)
+    }
+
+    let allHomeVideos = [];
+
+    // Category filter functionality for home page
+    function initHomeCategoryFilters() {
+      const categoryBtns = document.querySelectorAll('.category-filter-bar-horizontal .category-btn');
+
+      categoryBtns.forEach(btn => {
+        btn.addEventListener('click', async () => {
+          // Remove active class from all buttons
+          categoryBtns.forEach(b => b.classList.remove('active'));
+
+          // Add active class to clicked button
+          btn.classList.add('active');
+
+          // Get category and load videos
+          const category = btn.dataset.category;
+          await loadVideos(category);
+        });
+      });
+    }
+
+    // Category scroll arrow functionality
+    function initCategoryScroll() {
+      const categoryBar = document.getElementById('categoryBar');
+      const scrollLeft = document.getElementById('scrollLeft');
+      const scrollRight = document.getElementById('scrollRight');
+
+      if (!categoryBar || !scrollLeft || !scrollRight) return;
+
+      // Scroll left button
+      scrollLeft.addEventListener('click', () => {
+        categoryBar.scrollBy({ left: -200, behavior: 'smooth' });
+      });
+
+      // Scroll right button
+      scrollRight.addEventListener('click', () => {
+        categoryBar.scrollBy({ left: 200, behavior: 'smooth' });
+      });
+
+      // Update arrow visibility based on scroll position
+      function updateArrowVisibility() {
+        const maxScroll = categoryBar.scrollWidth - categoryBar.clientWidth;
+
+        if (maxScroll <= 0) {
+          // No overflow, hide both arrows
+          scrollLeft.style.opacity = '0.3';
+          scrollLeft.style.pointerEvents = 'none';
+          scrollRight.style.opacity = '0.3';
+          scrollRight.style.pointerEvents = 'none';
+        } else {
+          // Left arrow
+          if (categoryBar.scrollLeft <= 0) {
+            scrollLeft.style.opacity = '0.3';
+            scrollLeft.style.pointerEvents = 'none';
+          } else {
+            scrollLeft.style.opacity = '1';
+            scrollLeft.style.pointerEvents = 'auto';
+          }
+
+          // Right arrow
+          if (categoryBar.scrollLeft >= maxScroll - 1) {
+            scrollRight.style.opacity = '0.3';
+            scrollRight.style.pointerEvents = 'none';
+          } else {
+            scrollRight.style.opacity = '1';
+            scrollRight.style.pointerEvents = 'auto';
+          }
+        }
+      }
+
+      categoryBar.addEventListener('scroll', updateArrowVisibility);
+      window.addEventListener('resize', updateArrowVisibility);
+
+      // Initial check
+      setTimeout(updateArrowVisibility, 100);
+    }
+
+    // Filter dropdown functionality
+    function initFilterDropdown() {
+      const filterBtn = document.getElementById('filterDropdownBtn');
+      const filterMenu = document.getElementById('filterDropdownMenu');
+
+      if (!filterBtn || !filterMenu) return;
+
+      filterBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        filterMenu.classList.toggle('show');
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!filterMenu.contains(e.target) && !filterBtn.contains(e.target)) {
+          filterMenu.classList.remove('show');
+        }
+      });
+
+      // Handle filter options
+      const showThumbnails = document.getElementById('filterShowThumbnails');
+      const compactView = document.getElementById('filterCompactView');
+
+      if (showThumbnails) {
+        showThumbnails.addEventListener('change', (e) => {
+          const videoGrid = document.getElementById('videoGrid');
+          if (e.target.checked) {
+            videoGrid.classList.remove('hide-thumbnails');
+          } else {
+            videoGrid.classList.add('hide-thumbnails');
+          }
+        });
+      }
+
+      if (compactView) {
+        compactView.addEventListener('change', (e) => {
+          const videoGrid = document.getElementById('videoGrid');
+          if (e.target.checked) {
+            videoGrid.classList.add('compact-view');
+          } else {
+            videoGrid.classList.remove('compact-view');
+          }
+        });
+      }
+    }
+
+    // Load most used tags dynamically
+    async function loadMostUsedTags() {
+      try {
+        const videos = await getVideos();
+
+        // Count tag usage
+        const tagCounts = {};
+        videos.forEach(video => {
+          if (video.tags) {
+            const tagsArray = typeof video.tags === 'string'
+              ? video.tags.split(',').map(t => t.trim())
+              : video.tags;
+
+            tagsArray.forEach(tag => {
+              if (tag) {
+                tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+              }
+            });
+          }
+        });
+
+        // Sort tags by usage count
+        const sortedTags = Object.entries(tagCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 15) // Top 15 most used tags
+          .map(([tag]) => tag);
+
+        // Update category bar with most used tags
+        const categoryBar = document.getElementById('categoryBar');
+        if (categoryBar && sortedTags.length > 0) {
+          // Keep "All" button, replace rest with most used tags
+          categoryBar.innerHTML = '<button class="category-btn active" data-category="all">All</button>';
+
+          sortedTags.forEach(tag => {
+            const btn = document.createElement('button');
+            btn.className = 'category-btn';
+            btn.dataset.category = tag;
+            btn.textContent = tag.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+            categoryBar.appendChild(btn);
+          });
+
+          // Re-initialize category filters after updating
+          setTimeout(() => initHomeCategoryFilters(), 100);
+        }
+      } catch (error) {
+        console.error('Error loading most used tags:', error);
+      }
+    }
+
+    async function loadVideos(category = 'all') {
       const videoGrid = document.getElementById('videoGrid');
 
       try {
         // Show skeleton loaders while loading
-        showSkeletonGrid(videoGrid, 12);
+        if (allHomeVideos.length === 0) {
+          showSkeletonGrid(videoGrid, 12);
+        }
 
-        const videos = await getVideos();
+        if (allHomeVideos.length === 0) {
+          allHomeVideos = await getVideos();
+        }
 
-        if (videos.length === 0) {
-          videoGrid.innerHTML = '<p class="secondary">No videos found. Be the first to upload!</p>';
+        let filteredVideos = [...allHomeVideos];
+
+        // Filter by category/tag if not 'all'
+        if (category !== 'all') {
+          filteredVideos = filteredVideos.filter(v => {
+            // Support both single category field and tags array
+            if (v.tags) {
+              // If tags is a string (comma-separated), split it
+              const tagsArray = typeof v.tags === 'string'
+                ? v.tags.split(',').map(t => t.trim().toLowerCase())
+                : (Array.isArray(v.tags) ? v.tags.map(t => t.toLowerCase()) : []);
+              return tagsArray.includes(category.toLowerCase());
+            }
+            // Fallback to single category field
+            return v.category && v.category.toLowerCase() === category.toLowerCase();
+          });
+        }
+
+        if (filteredVideos.length === 0) {
+          videoGrid.innerHTML = '<p class="secondary" style="text-align: center; padding: 4rem 2rem; font-size: 1.1rem;">No videos found in this category. Be the first to upload!</p>';
           return;
         }
 
@@ -188,7 +830,7 @@
         videoGrid.innerHTML = '';
 
         // Use component library to create video cards
-        videos.forEach(video => {
+        filteredVideos.forEach(video => {
           const card = createVideoCard(video, 'grid');
           videoGrid.appendChild(card);
         });
@@ -203,12 +845,7 @@
       }
     }
 
-    // Search functionality
-    document.getElementById('searchBtn').addEventListener('click', handleSearch);
-    document.getElementById('searchInput').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') handleSearch();
-    });
-
+    // Search functionality (called by global search in app.js)
     async function handleSearch() {
       const searchTerm = document.getElementById('searchInput').value.trim();
       if (!searchTerm) return;
@@ -220,10 +857,26 @@
 
       try {
         const videos = await getVideos();
-        const filtered = videos.filter(video =>
-          video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          video.description?.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+        const searchLower = searchTerm.toLowerCase();
+
+        const filtered = videos.filter(video => {
+          // Search in title
+          if (video.title.toLowerCase().includes(searchLower)) return true;
+
+          // Search in description
+          if (video.description?.toLowerCase().includes(searchLower)) return true;
+
+          // Search in tags
+          if (video.tags) {
+            const tagsArray = typeof video.tags === 'string'
+              ? video.tags.split(',').map(t => t.trim().toLowerCase())
+              : (Array.isArray(video.tags) ? video.tags.map(t => t.toLowerCase()) : []);
+
+            return tagsArray.some(tag => tag.includes(searchLower));
+          }
+
+          return false;
+        });
 
         if (filtered.length === 0) {
           videoGrid.innerHTML = `<p class="secondary">No results found for "${searchTerm}"</p>`;

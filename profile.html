@@ -3,13 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https:; connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net; frame-src 'none'; object-src 'none'; base-uri 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https: https://videodelivery.net https://cloudflarestream.com; connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net https://api.cloudflare.com https://videodelivery.net https://embed.cloudflarestream.com; frame-src 'self' https://embed.cloudflarestream.com https://iframe.videodelivery.net; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
   <title>Profile - Mukkaz</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <script src="config.local.js" onerror="console.warn('config.local.js not found - using defaults')"></script>
   <script src="config.js"></script>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="youtube-redesign.css">
   <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="age-gate.js"></script>
+  <script src="components.js"></script>
 </head>
 <body>
   <!-- Navigation Bar -->
@@ -30,33 +33,62 @@
           class="search-input"
           id="searchInput"
           placeholder="Search videos..."
+          autocomplete="off"
         >
         <button class="search-btn" id="searchBtn">
           <span id="searchIcon"></span>
         </button>
+        <div class="search-suggestions hidden" id="searchSuggestions">
+          <!-- Tag suggestions populated by JavaScript -->
+        </div>
       </div>
     </div>
 
     <div class="navbar-right" id="navbarRight">
-      <!-- Content loaded by JavaScript -->
+      <!-- Loading skeleton -->
+      <div class="navbar-skeleton" id="navbarSkeleton">
+        <div class="skeleton-nav-icon"></div>
+        <div class="skeleton-nav-icon"></div>
+        <div class="skeleton-avatar"></div>
+      </div>
     </div>
   </nav>
 
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
+    <!-- Home Section -->
     <div class="sidebar-section">
       <a href="index.html" class="sidebar-item">
         <span id="homeIcon"></span>
         <span>Home</span>
       </a>
-      <a href="#trending" class="sidebar-item">
+    </div>
+
+    <!-- Trending Section -->
+    <div class="sidebar-section">
+      <a href="index.html#trending" class="sidebar-item">
         <span id="trendingIcon"></span>
         <span>Trending</span>
       </a>
     </div>
 
-    <div class="sidebar-section" id="authSection">
-      <!-- Content loaded by JavaScript -->
+    <!-- Subscriptions Section -->
+    <div class="sidebar-section" id="subscriptionsSidebarSection">
+      <div class="sidebar-section-header">
+        <span id="subscriptionsIcon"></span>
+        <span>Subscriptions</span>
+      </div>
+      <div id="subscriptionsList">
+        <!-- Subscriptions loaded by JavaScript -->
+      </div>
+    </div>
+
+    <!-- History Section -->
+    <div class="sidebar-section">
+      <a href="index.html#history" class="sidebar-item">
+        <span id="historyIcon"></span>
+        <span>History</span>
+      </a>
     </div>
   </aside>
 
@@ -66,13 +98,17 @@
       <!-- Profile Header -->
       <div class="profile-header">
         <div style="position: relative;">
-          <img src="" alt="Avatar" class="avatar lg" id="profileAvatar">
+          <div class="profile-avatar-container loading" id="profileAvatarContainer">
+            <img src="" alt="Avatar" id="profileAvatar">
+          </div>
           <input type="file" id="avatarInput" class="file-input" accept="image/*">
         </div>
         <div class="profile-info">
           <h1 class="profile-username" id="profileUsername">Loading...</h1>
           <div class="profile-stats">
             <span id="videoCount">0 videos</span>
+            <span>•</span>
+            <span id="totalViews">0 views</span>
             <span>•</span>
             <span>Joined <span id="joinedDate">recently</span></span>
           </div>
@@ -83,13 +119,206 @@
         </div>
       </div>
 
-      <!-- User Videos -->
-      <h2 class="page-title">My Videos</h2>
-      <div class="video-grid" id="userVideos">
-        <div class="loader">
-          <div class="spinner"></div>
+      <!-- Profile Tabs -->
+      <div class="profile-tabs">
+        <button class="profile-tab active" data-tab="settings">
+          <span id="settingsIcon"></span> Settings
+        </button>
+        <button class="profile-tab" data-tab="videos">
+          <span id="videosIcon"></span> My Videos
+        </button>
+        <button class="profile-tab" data-tab="stats">
+          <span id="statsIcon"></span> Statistics
+        </button>
+        <button class="profile-tab" data-tab="privacy">
+          <span id="privacyIcon"></span> Privacy
+        </button>
+      </div>
+
+      <!-- Settings Sections -->
+      <div class="profile-settings" id="settingsTab">
+        <!-- Account Information -->
+        <div class="settings-section">
+          <h2 class="settings-title">Account Information</h2>
+
+          <div class="settings-item">
+            <div class="settings-item-header">
+              <div>
+                <label class="settings-label">Username</label>
+                <p class="settings-value" id="displayUsername">Loading...</p>
+              </div>
+              <button class="btn-secondary btn-sm" id="editUsernameBtn">Edit</button>
+            </div>
+            <form class="settings-form hidden" id="usernameForm">
+              <input type="text" class="form-input" id="newUsername" placeholder="Enter new username" required>
+              <div class="form-actions">
+                <button type="submit" class="btn-primary btn-sm">Save</button>
+                <button type="button" class="btn-secondary btn-sm" id="cancelUsernameBtn">Cancel</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="settings-item">
+            <div class="settings-item-header">
+              <div>
+                <label class="settings-label">Email</label>
+                <p class="settings-value" id="displayEmail">Loading...</p>
+              </div>
+              <button class="btn-secondary btn-sm" id="editEmailBtn">Edit</button>
+            </div>
+            <form class="settings-form hidden" id="emailForm">
+              <input type="email" class="form-input" id="newEmail" placeholder="Enter new email" required>
+              <div class="form-actions">
+                <button type="submit" class="btn-primary btn-sm">Save</button>
+                <button type="button" class="btn-secondary btn-sm" id="cancelEmailBtn">Cancel</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="settings-item">
+            <div class="settings-item-header">
+              <div>
+                <label class="settings-label">Password</label>
+                <p class="settings-value">••••••••</p>
+              </div>
+              <button class="btn-secondary btn-sm" id="editPasswordBtn">Change</button>
+            </div>
+            <form class="settings-form hidden" id="passwordForm">
+              <input type="password" class="form-input" id="currentPassword" placeholder="Current password" required>
+              <input type="password" class="form-input" id="newPassword" placeholder="New password" required>
+              <input type="password" class="form-input" id="confirmPassword" placeholder="Confirm new password" required>
+              <div class="form-actions">
+                <button type="submit" class="btn-primary btn-sm">Update Password</button>
+                <button type="button" class="btn-secondary btn-sm" id="cancelPasswordBtn">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Profile Information -->
+        <div class="settings-section">
+          <h2 class="settings-title">Profile Information</h2>
+
+          <div class="settings-item">
+            <label class="settings-label">Bio</label>
+            <textarea class="form-input" id="bioInput" rows="4" placeholder="Tell viewers about yourself..." maxlength="500"></textarea>
+            <p class="settings-hint"><span id="bioCount">0</span>/500 characters</p>
+            <button class="btn-primary btn-sm" id="saveBioBtn">Save Bio</button>
+          </div>
+
+          <div class="settings-item">
+            <label class="settings-label">Location</label>
+            <input type="text" class="form-input" id="locationInput" placeholder="e.g., Kingston, Jamaica">
+            <button class="btn-primary btn-sm" id="saveLocationBtn">Save Location</button>
+          </div>
+
+          <div class="settings-item">
+            <label class="settings-label">Website / Social Link</label>
+            <input type="url" class="form-input" id="websiteInput" placeholder="https://example.com">
+            <button class="btn-primary btn-sm" id="saveWebsiteBtn">Save Website</button>
+          </div>
+        </div>
+
+        <!-- Privacy & Preferences -->
+        <div class="settings-section">
+          <h2 class="settings-title">Privacy & Preferences</h2>
+
+          <div class="settings-item">
+            <label class="settings-checkbox">
+              <input type="checkbox" id="profileVisibilityCheck">
+              <span>Make profile public</span>
+            </label>
+            <p class="settings-hint">Allow others to view your profile and videos</p>
+          </div>
+
+          <div class="settings-item">
+            <label class="settings-checkbox">
+              <input type="checkbox" id="showEmailCheck">
+              <span>Show email on profile</span>
+            </label>
+            <p class="settings-hint">Display your email address publicly</p>
+          </div>
+
+          <div class="settings-item">
+            <label class="settings-checkbox">
+              <input type="checkbox" id="matureContentCheck" checked>
+              <span>Show mature content</span>
+            </label>
+            <p class="settings-hint">Display age-restricted videos in your feed</p>
+          </div>
+        </div>
+
+        <!-- Notification Settings -->
+        <div class="settings-section">
+          <h2 class="settings-title">Notification Settings</h2>
+
+          <div class="settings-item">
+            <label class="settings-checkbox">
+              <input type="checkbox" id="notifySubscribersCheck" checked>
+              <span>Email when someone subscribes</span>
+            </label>
+          </div>
+
+          <div class="settings-item">
+            <label class="settings-checkbox">
+              <input type="checkbox" id="notifyCommentsCheck" checked>
+              <span>Email when someone comments on your video</span>
+            </label>
+          </div>
+
+          <div class="settings-item">
+            <label class="settings-checkbox">
+              <input type="checkbox" id="notifyLikesCheck">
+              <span>Email when someone likes your video</span>
+            </label>
+          </div>
+
+          <div class="settings-item">
+            <label class="settings-checkbox">
+              <input type="checkbox" id="notifyUploadsCheck" checked>
+              <span>Email when subscribed channels upload</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="settings-section">
+          <h2 class="settings-title">Account Statistics</h2>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-value" id="statVideos">0</div>
+              <div class="stat-label">Videos Uploaded</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="statViews">0</div>
+              <div class="stat-label">Total Views</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="statLikes">0</div>
+              <div class="stat-label">Total Likes</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="statSubscribers">0</div>
+              <div class="stat-label">Subscribers</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="settings-section danger-zone">
+          <h2 class="settings-title">Danger Zone</h2>
+
+          <div class="settings-item">
+            <div>
+              <label class="settings-label">Delete Account</label>
+              <p class="settings-hint">Once you delete your account, there is no going back. All your videos and data will be permanently deleted.</p>
+            </div>
+            <button class="btn-danger" id="deleteAccountBtn">Delete Account</button>
+          </div>
         </div>
       </div>
+
     </div>
   </main>
 
@@ -146,6 +375,44 @@
     </div>
   </div>
 
+  <!-- Delete Account Confirmation Modal -->
+  <div class="modal-overlay hidden" id="deleteAccountModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Delete Account</h2>
+        <button class="modal-close" id="closeDeleteModal">
+          <span id="closeDeleteIcon"></span>
+        </button>
+      </div>
+
+      <div style="padding: 1rem 0;">
+        <p style="margin-bottom: 1rem;">Are you absolutely sure you want to delete your account?</p>
+        <p class="secondary" style="margin-bottom: 1rem;">
+          This action cannot be undone. This will permanently delete:
+        </p>
+        <ul style="list-style: disc; margin-left: 2rem; margin-bottom: 1rem;" class="secondary">
+          <li>Your profile and account information</li>
+          <li>All your uploaded videos</li>
+          <li>All your comments and likes</li>
+          <li>Your subscriptions and subscribers</li>
+        </ul>
+        <p style="margin-bottom: 1.5rem; color: var(--danger);">
+          Type your username (<strong id="confirmUsername"></strong>) to confirm:
+        </p>
+
+        <form id="deleteAccountForm">
+          <div class="form-group">
+            <input type="text" class="form-input" id="deleteConfirmInput" placeholder="Enter your username" required>
+          </div>
+          <div class="form-actions" style="gap: 1rem;">
+            <button type="submit" class="btn-danger">Permanently Delete Account</button>
+            <button type="button" class="btn-secondary" id="cancelDeleteBtn">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="icons.js"></script>
@@ -159,7 +426,47 @@
     document.addEventListener('DOMContentLoaded', async () => {
       await initializeApp();
       await loadProfile();
+      initializeSettingsHandlers();
+      initializeProfileTabs();
     });
+
+    function initializeProfileTabs() {
+      // Add icons to tabs
+      document.getElementById('settingsIcon').innerHTML = getIcon('settings');
+      document.getElementById('videosIcon').innerHTML = getIcon('video');
+      document.getElementById('statsIcon').innerHTML = getIcon('chart');
+      document.getElementById('privacyIcon').innerHTML = getIcon('lock');
+
+      // Tab switching
+      document.querySelectorAll('.profile-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          const tabName = tab.dataset.tab;
+
+          // Update active tab
+          document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+
+          // Show corresponding content
+          document.querySelectorAll('.profile-settings > .settings-section').forEach(section => {
+            section.style.display = 'none';
+          });
+
+          // Show sections based on tab
+          if (tabName === 'settings') {
+            document.querySelectorAll('.settings-section')[0].style.display = 'block'; // Account Info
+            document.querySelectorAll('.settings-section')[1].style.display = 'block'; // Profile Info
+          } else if (tabName === 'videos') {
+            window.location.href = 'my-videos.html';
+          } else if (tabName === 'stats') {
+            document.querySelectorAll('.settings-section')[4].style.display = 'block'; // Statistics
+          } else if (tabName === 'privacy') {
+            document.querySelectorAll('.settings-section')[2].style.display = 'block'; // Privacy
+            document.querySelectorAll('.settings-section')[3].style.display = 'block'; // Notifications
+            document.querySelectorAll('.settings-section')[5].style.display = 'block'; // Danger Zone
+          }
+        });
+      });
+    }
 
     async function loadProfile() {
       currentUser = await getCurrentUser();
@@ -184,85 +491,145 @@
       try {
         currentProfile = await getProfile(currentUser.id);
 
+        // Load profile header
         document.getElementById('profileUsername').textContent = currentProfile.username;
-        document.getElementById('profileAvatar').src = currentProfile.avatar_url;
-        document.getElementById('joinedDate').textContent = timeSince(currentProfile.updated_at);
+        document.getElementById('displayUsername').textContent = currentProfile.username;
+        document.getElementById('displayEmail').textContent = currentUser.email;
+        document.getElementById('confirmUsername').textContent = currentProfile.username;
 
-        await loadUserVideos();
+        // Load avatar with loading state
+        const avatarImg = document.getElementById('profileAvatar');
+        const avatarContainer = document.getElementById('profileAvatarContainer');
+
+        avatarImg.onload = () => {
+          avatarImg.classList.add('loaded');
+          avatarContainer.classList.remove('loading');
+        };
+
+        avatarImg.src = currentProfile.avatar_url;
+        document.getElementById('joinedDate').textContent = timeSince(currentProfile.created_at);
+
+        // Load profile information
+        if (currentProfile.bio) {
+          document.getElementById('bioInput').value = currentProfile.bio;
+          document.getElementById('bioCount').textContent = currentProfile.bio.length;
+        }
+        if (currentProfile.location) {
+          document.getElementById('locationInput').value = currentProfile.location;
+        }
+        if (currentProfile.website) {
+          document.getElementById('websiteInput').value = currentProfile.website;
+        }
+
+        // Load privacy settings from localStorage
+        loadPrivacySettings();
+        loadNotificationSettings();
+
+        // Load statistics
+        await loadStatistics();
       } catch (error) {
         console.error('Error loading profile:', error);
         showNotification('Error loading profile', 'error');
       }
     }
 
-    async function loadUserVideos() {
-      const userVideos = document.getElementById('userVideos');
-
+    async function loadStatistics() {
       try {
         const allVideos = await getVideos();
         const myVideos = allVideos.filter(v => v.user_id === currentUser.id);
 
+        const totalViews = myVideos.reduce((sum, v) => sum + (v.views_count || 0), 0);
+        const totalLikes = myVideos.reduce((sum, v) => sum + (v.likes_count || 0), 0);
+
         document.getElementById('videoCount').textContent = `${myVideos.length} video${myVideos.length !== 1 ? 's' : ''}`;
+        document.getElementById('totalViews').textContent = `${formatNumber(totalViews)} views`;
 
-        if (myVideos.length === 0) {
-          userVideos.innerHTML = `
-            <p class="secondary">You haven't uploaded any videos yet.</p>
-            <a href="upload.html" class="btn-primary" style="display: inline-block; margin-top: 1rem;">
-              Upload Your First Video
-            </a>
-          `;
-          return;
-        }
-
-        userVideos.innerHTML = myVideos.map(video => createVideoCard(video)).join('');
+        document.getElementById('statVideos').textContent = formatNumber(myVideos.length);
+        document.getElementById('statViews').textContent = formatNumber(totalViews);
+        document.getElementById('statLikes').textContent = formatNumber(totalLikes);
+        document.getElementById('statSubscribers').textContent = '0'; // TODO: Implement subscribers
       } catch (error) {
-        console.error('Error loading videos:', error);
-        userVideos.innerHTML = '<p class="secondary">Error loading videos</p>';
+        console.error('Error loading statistics:', error);
       }
     }
 
-    function createVideoCard(video) {
-      const profile = video.profiles || currentProfile;
-      const username = profile.username || 'Unknown';
-      const avatarUrl = profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`;
-      const thumbnailUrl = video.thumbnail_url || 'https://via.placeholder.com/320x180?text=No+Thumbnail';
+    function initializeSettingsHandlers() {
+      // Avatar upload
+      document.getElementById('editAvatarBtn').addEventListener('click', () => {
+        document.getElementById('avatarInput').click();
+      });
 
-      return `
-        <a href="watch.html?v=${video.id}" class="video-card">
-          <div class="video-thumbnail-container">
-            <img
-              src="${thumbnailUrl}"
-              alt="${video.title}"
-              class="video-thumbnail"
-              loading="lazy"
-            >
-          </div>
-          <div class="video-info">
-            <div class="video-avatar">
-              <img src="${avatarUrl}" alt="${username}" class="avatar">
-            </div>
-            <div class="video-details">
-              <h3 class="video-title">${video.title}</h3>
-              <div class="video-meta">
-                <div class="secondary">${username}</div>
-                <div class="secondary">
-                  <span>${formatNumber(video.views_count || 0)} views</span>
-                  <span>•</span>
-                  <span>${timeSince(video.created_at)} ago</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </a>
-      `;
+      document.getElementById('avatarInput').addEventListener('change', handleAvatarUpload);
+
+      // Username editing
+      document.getElementById('editUsernameBtn').addEventListener('click', () => toggleEditForm('username'));
+      document.getElementById('cancelUsernameBtn').addEventListener('click', () => toggleEditForm('username'));
+      document.getElementById('usernameForm').addEventListener('submit', handleUsernameUpdate);
+
+      // Email editing
+      document.getElementById('editEmailBtn').addEventListener('click', () => toggleEditForm('email'));
+      document.getElementById('cancelEmailBtn').addEventListener('click', () => toggleEditForm('email'));
+      document.getElementById('emailForm').addEventListener('submit', handleEmailUpdate);
+
+      // Password changing
+      document.getElementById('editPasswordBtn').addEventListener('click', () => toggleEditForm('password'));
+      document.getElementById('cancelPasswordBtn').addEventListener('click', () => toggleEditForm('password'));
+      document.getElementById('passwordForm').addEventListener('submit', handlePasswordUpdate);
+
+      // Profile information
+      document.getElementById('bioInput').addEventListener('input', (e) => {
+        document.getElementById('bioCount').textContent = e.target.value.length;
+      });
+      document.getElementById('saveBioBtn').addEventListener('click', handleBioSave);
+      document.getElementById('saveLocationBtn').addEventListener('click', handleLocationSave);
+      document.getElementById('saveWebsiteBtn').addEventListener('click', handleWebsiteSave);
+
+      // Privacy settings
+      document.getElementById('profileVisibilityCheck').addEventListener('change', savePrivacySettings);
+      document.getElementById('showEmailCheck').addEventListener('change', savePrivacySettings);
+      document.getElementById('matureContentCheck').addEventListener('change', savePrivacySettings);
+
+      // Notification settings
+      document.getElementById('notifySubscribersCheck').addEventListener('change', saveNotificationSettings);
+      document.getElementById('notifyCommentsCheck').addEventListener('change', saveNotificationSettings);
+      document.getElementById('notifyLikesCheck').addEventListener('change', saveNotificationSettings);
+      document.getElementById('notifyUploadsCheck').addEventListener('change', saveNotificationSettings);
+
+      // Delete account
+      document.getElementById('deleteAccountBtn').addEventListener('click', openDeleteAccountModal);
+      document.getElementById('closeDeleteModal').addEventListener('click', closeDeleteAccountModal);
+      document.getElementById('cancelDeleteBtn').addEventListener('click', closeDeleteAccountModal);
+      document.getElementById('deleteAccountForm').addEventListener('submit', handleDeleteAccount);
+
+      // Add icons
+      document.getElementById('editIcon').innerHTML = getIcon('edit');
+      document.getElementById('closeDeleteIcon').innerHTML = getIcon('close');
     }
 
-    // Avatar upload
-    document.getElementById('editAvatarBtn').addEventListener('click', () => {
-      document.getElementById('avatarInput').click();
-    });
+    function toggleEditForm(type) {
+      const form = document.getElementById(`${type}Form`);
+      const header = form.previousElementSibling;
 
-    document.getElementById('avatarInput').addEventListener('change', async (e) => {
+      if (form.classList.contains('hidden')) {
+        form.classList.remove('hidden');
+        header.style.display = 'none';
+        if (type === 'username') {
+          document.getElementById('newUsername').value = currentProfile.username;
+          document.getElementById('newUsername').focus();
+        } else if (type === 'email') {
+          document.getElementById('newEmail').value = currentUser.email;
+          document.getElementById('newEmail').focus();
+        } else if (type === 'password') {
+          document.getElementById('currentPassword').focus();
+        }
+      } else {
+        form.classList.add('hidden');
+        header.style.display = '';
+        form.reset();
+      }
+    }
+
+    async function handleAvatarUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
 
@@ -284,10 +651,254 @@
         console.error('Error uploading avatar:', error);
         showNotification('Error uploading avatar', 'error');
       }
-    });
+    }
 
-    // Add edit icon
-    document.getElementById('editIcon').innerHTML = getIcon('edit');
+    async function handleUsernameUpdate(e) {
+      e.preventDefault();
+      const newUsername = document.getElementById('newUsername').value.trim();
+
+      if (newUsername === currentProfile.username) {
+        toggleEditForm('username');
+        return;
+      }
+
+      if (newUsername.length < 3) {
+        showNotification('Username must be at least 3 characters', 'error');
+        return;
+      }
+
+      try {
+        showNotification('Updating username...', 'info');
+
+        const { error } = await supabaseClient
+          .from('profiles')
+          .update({ username: newUsername })
+          .eq('id', currentUser.id);
+
+        if (error) throw error;
+
+        currentProfile.username = newUsername;
+        document.getElementById('profileUsername').textContent = newUsername;
+        document.getElementById('displayUsername').textContent = newUsername;
+        document.getElementById('confirmUsername').textContent = newUsername;
+
+        toggleEditForm('username');
+        showNotification('Username updated successfully', 'success');
+      } catch (error) {
+        console.error('Error updating username:', error);
+        showNotification(error.message || 'Error updating username', 'error');
+      }
+    }
+
+    async function handleEmailUpdate(e) {
+      e.preventDefault();
+      const newEmail = document.getElementById('newEmail').value.trim();
+
+      if (newEmail === currentUser.email) {
+        toggleEditForm('email');
+        return;
+      }
+
+      try {
+        showNotification('Updating email...', 'info');
+
+        const { error } = await supabaseClient.auth.updateUser({
+          email: newEmail
+        });
+
+        if (error) throw error;
+
+        showNotification('Check your new email to confirm the change', 'success');
+        toggleEditForm('email');
+      } catch (error) {
+        console.error('Error updating email:', error);
+        showNotification(error.message || 'Error updating email', 'error');
+      }
+    }
+
+    async function handlePasswordUpdate(e) {
+      e.preventDefault();
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+
+      if (newPassword !== confirmPassword) {
+        showNotification('Passwords do not match', 'error');
+        return;
+      }
+
+      if (newPassword.length < 6) {
+        showNotification('Password must be at least 6 characters', 'error');
+        return;
+      }
+
+      try {
+        showNotification('Updating password...', 'info');
+
+        const { error } = await supabaseClient.auth.updateUser({
+          password: newPassword
+        });
+
+        if (error) throw error;
+
+        toggleEditForm('password');
+        showNotification('Password updated successfully', 'success');
+      } catch (error) {
+        console.error('Error updating password:', error);
+        showNotification(error.message || 'Error updating password', 'error');
+      }
+    }
+
+    async function handleBioSave() {
+      const bio = document.getElementById('bioInput').value.trim();
+
+      try {
+        showNotification('Saving bio...', 'info');
+
+        const { error } = await supabaseClient
+          .from('profiles')
+          .update({ bio })
+          .eq('id', currentUser.id);
+
+        if (error) throw error;
+
+        currentProfile.bio = bio;
+        showNotification('Bio saved successfully', 'success');
+      } catch (error) {
+        console.error('Error saving bio:', error);
+        showNotification('Error saving bio', 'error');
+      }
+    }
+
+    async function handleLocationSave() {
+      const location = document.getElementById('locationInput').value.trim();
+
+      try {
+        showNotification('Saving location...', 'info');
+
+        const { error } = await supabaseClient
+          .from('profiles')
+          .update({ location })
+          .eq('id', currentUser.id);
+
+        if (error) throw error;
+
+        currentProfile.location = location;
+        showNotification('Location saved successfully', 'success');
+      } catch (error) {
+        console.error('Error saving location:', error);
+        showNotification('Error saving location', 'error');
+      }
+    }
+
+    async function handleWebsiteSave() {
+      const website = document.getElementById('websiteInput').value.trim();
+
+      try {
+        showNotification('Saving website...', 'info');
+
+        const { error } = await supabaseClient
+          .from('profiles')
+          .update({ website })
+          .eq('id', currentUser.id);
+
+        if (error) throw error;
+
+        currentProfile.website = website;
+        showNotification('Website saved successfully', 'success');
+      } catch (error) {
+        console.error('Error saving website:', error);
+        showNotification('Error saving website', 'error');
+      }
+    }
+
+    function loadPrivacySettings() {
+      const settings = JSON.parse(localStorage.getItem('privacySettings') || '{}');
+      document.getElementById('profileVisibilityCheck').checked = settings.profilePublic !== false;
+      document.getElementById('showEmailCheck').checked = settings.showEmail === true;
+      document.getElementById('matureContentCheck').checked = settings.showMatureContent !== false;
+    }
+
+    function savePrivacySettings() {
+      const settings = {
+        profilePublic: document.getElementById('profileVisibilityCheck').checked,
+        showEmail: document.getElementById('showEmailCheck').checked,
+        showMatureContent: document.getElementById('matureContentCheck').checked
+      };
+      localStorage.setItem('privacySettings', JSON.stringify(settings));
+      showNotification('Privacy settings saved', 'success');
+    }
+
+    function loadNotificationSettings() {
+      const settings = JSON.parse(localStorage.getItem('notificationSettings') || '{}');
+      document.getElementById('notifySubscribersCheck').checked = settings.notifySubscribers !== false;
+      document.getElementById('notifyCommentsCheck').checked = settings.notifyComments !== false;
+      document.getElementById('notifyLikesCheck').checked = settings.notifyLikes === true;
+      document.getElementById('notifyUploadsCheck').checked = settings.notifyUploads !== false;
+    }
+
+    function saveNotificationSettings() {
+      const settings = {
+        notifySubscribers: document.getElementById('notifySubscribersCheck').checked,
+        notifyComments: document.getElementById('notifyCommentsCheck').checked,
+        notifyLikes: document.getElementById('notifyLikesCheck').checked,
+        notifyUploads: document.getElementById('notifyUploadsCheck').checked
+      };
+      localStorage.setItem('notificationSettings', JSON.stringify(settings));
+      showNotification('Notification settings saved', 'success');
+    }
+
+    function openDeleteAccountModal() {
+      document.getElementById('deleteAccountModal').classList.remove('hidden');
+    }
+
+    function closeDeleteAccountModal() {
+      document.getElementById('deleteAccountModal').classList.add('hidden');
+      document.getElementById('deleteConfirmInput').value = '';
+    }
+
+    async function handleDeleteAccount(e) {
+      e.preventDefault();
+      const confirmInput = document.getElementById('deleteConfirmInput').value.trim();
+
+      if (confirmInput !== currentProfile.username) {
+        showNotification('Username does not match', 'error');
+        return;
+      }
+
+      try {
+        showNotification('Deleting account...', 'info');
+
+        // Delete all user's videos first
+        const allVideos = await getVideos();
+        const myVideos = allVideos.filter(v => v.user_id === currentUser.id);
+
+        for (const video of myVideos) {
+          await supabaseClient
+            .from('videos')
+            .delete()
+            .eq('id', video.id);
+        }
+
+        // Delete profile
+        await supabaseClient
+          .from('profiles')
+          .delete()
+          .eq('id', currentUser.id);
+
+        // Delete auth user
+        const { error } = await supabaseClient.auth.admin.deleteUser(currentUser.id);
+        if (error) throw error;
+
+        // Sign out
+        await supabaseClient.auth.signOut();
+
+        showNotification('Account deleted successfully', 'success');
+        window.location.href = 'index.html';
+      } catch (error) {
+        console.error('Error deleting account:', error);
+        showNotification('Error deleting account. Please contact support.', 'error');
+      }
+    }
   </script>
 </body>
 </html>
