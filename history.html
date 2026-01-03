@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://pl28394065.effectivegatecpm.com https://pl28394078.effectivegatecpm.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https:; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self';">
+  <title>Watch History - Mukkaz</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script src="config.local.js" onerror="console.warn('config.local.js not found - using defaults')"></script>
+  <script src="config.js"></script>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="youtube-redesign.css">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="age-gate.js"></script>
+  <script src="components.js"></script>
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="navbar-left">
+      <button class="nav-icon hamburger-btn" id="hamburgerBtn">
+        <span id="hamburgerIcon"></span>
+      </button>
+      <a href="index.html" class="logo">
+        <img src="logo.png" alt="Mukkaz" onerror="this.style.display='none'">
+      </a>
+    </div>
+
+    <div class="navbar-center">
+      <div class="search-container">
+        <input
+          type="text"
+          class="search-input"
+          id="searchInput"
+          placeholder="Search videos..."
+          autocomplete="off"
+        >
+        <button class="search-btn" id="searchBtn">
+          <span id="searchIcon"></span>
+        </button>
+        <div class="search-suggestions hidden" id="searchSuggestions"></div>
+      </div>
+    </div>
+
+    <div class="navbar-right" id="navbarRight">
+      <!-- Loading skeleton -->
+      <div class="navbar-skeleton" id="navbarSkeleton">
+        <div class="skeleton-nav-icon"></div>
+        <div class="skeleton-nav-icon"></div>
+        <div class="skeleton-avatar"></div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <!-- Home Section -->
+    <div class="sidebar-section">
+      <a href="index.html" class="sidebar-item">
+        <span id="homeIcon"></span>
+        <span>Home</span>
+      </a>
+    </div>
+
+    <!-- Trending Section -->
+    <div class="sidebar-section">
+      <a href="index.html#trending" class="sidebar-item">
+        <span id="trendingIcon"></span>
+        <span>Trending</span>
+      </a>
+    </div>
+
+    <!-- Subscriptions Section -->
+    <div class="sidebar-section" id="subscriptionsSidebarSection">
+      <div class="sidebar-section-header">
+        <span id="subscriptionsIcon"></span>
+        <span>Subscriptions</span>
+      </div>
+      <div id="subscriptionsList"></div>
+    </div>
+
+    <!-- History Section -->
+    <div class="sidebar-section">
+      <a href="history.html" class="sidebar-item active">
+        <span id="historyIcon"></span>
+        <span>History</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="history-page-container">
+      <!-- Header -->
+      <div class="history-header">
+        <h1>Watch History</h1>
+      </div>
+
+      <!-- Two Column Layout -->
+      <div class="history-layout">
+        <!-- Main History List -->
+        <div class="history-main">
+          <!-- Filter Chips -->
+          <div class="history-filters">
+            <button class="category-btn active" data-filter="all">All</button>
+            <button class="category-btn" data-filter="videos">Videos</button>
+          </div>
+
+          <!-- History Items -->
+          <div id="historyList">
+            <!-- Loading skeleton -->
+            <div class="history-skeleton" id="historySkeleton">
+              <div class="history-item-skeleton">
+                <div class="skeleton-thumb-horizontal"></div>
+                <div class="skeleton-info-horizontal">
+                  <div class="skeleton-title-horizontal"></div>
+                  <div class="skeleton-text-horizontal"></div>
+                </div>
+              </div>
+              <div class="history-item-skeleton">
+                <div class="skeleton-thumb-horizontal"></div>
+                <div class="skeleton-info-horizontal">
+                  <div class="skeleton-title-horizontal"></div>
+                  <div class="skeleton-text-horizontal"></div>
+                </div>
+              </div>
+              <div class="history-item-skeleton">
+                <div class="skeleton-thumb-horizontal"></div>
+                <div class="skeleton-info-horizontal">
+                  <div class="skeleton-title-horizontal"></div>
+                  <div class="skeleton-text-horizontal"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar Actions -->
+        <div class="history-sidebar">
+          <!-- Search History -->
+          <div class="history-search-box">
+            <span id="historySearchIcon"></span>
+            <input
+              type="text"
+              id="historySearchInput"
+              placeholder="Search watch history"
+              class="history-search-input"
+            >
+          </div>
+
+          <!-- Actions -->
+          <div class="history-actions">
+            <button class="history-action-btn" id="clearHistoryBtn">
+              <span id="clearHistoryIcon"></span>
+              <span>Clear all watch history</span>
+            </button>
+
+            <button class="history-action-btn" id="pauseHistoryBtn">
+              <span id="pauseHistoryIcon"></span>
+              <span id="pauseHistoryText">Pause watch history</span>
+            </button>
+          </div>
+
+          <div class="history-info">
+            Watch history is saved to help you discover videos you might like and improve your recommendations.
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="icons.js"></script>
+  <script src="utils.js"></script>
+  <script src="supabase.js"></script>
+  <script src="app.js"></script>
+  <script>
+    let allHistory = [];
+    let currentFilter = 'all';
+    let historyPaused = false;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await initializeApp();
+
+      // Load icons
+      document.getElementById('historySearchIcon').innerHTML = getIcon('search');
+      document.getElementById('clearHistoryIcon').innerHTML = getIcon('delete');
+      document.getElementById('pauseHistoryIcon').innerHTML = getIcon('pause');
+
+      // Check if user is logged in
+      const user = await getCurrentUser();
+      if (!user) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      // Check pause status
+      historyPaused = localStorage.getItem('historyPaused') === 'true';
+      updatePauseButton();
+
+      await loadHistory();
+      setupEventListeners();
+    });
+
+    async function loadHistory() {
+      const historyList = document.getElementById('historyList');
+      const skeleton = document.getElementById('historySkeleton');
+
+      try {
+        allHistory = await getWatchHistory();
+        skeleton.style.display = 'none';
+
+        if (allHistory.length === 0) {
+          historyList.innerHTML = `
+            <div style="text-align: center; padding: 4rem 2rem; color: var(--text-secondary);">
+              <p style="font-size: 18px; margin-bottom: 8px;">No watch history yet</p>
+              <p style="font-size: 14px;">Videos you watch will appear here</p>
+            </div>
+          `;
+          return;
+        }
+
+        displayHistory(allHistory);
+      } catch (error) {
+        console.error('Error loading history:', error);
+        skeleton.style.display = 'none';
+        historyList.innerHTML = '<p class="secondary" style="padding: 2rem; text-align: center;">Error loading watch history</p>';
+      }
+    }
+
+    function displayHistory(history) {
+      const historyList = document.getElementById('historyList');
+
+      if (history.length === 0) {
+        historyList.innerHTML = `
+          <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+            <p>No videos found</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Group by date
+      const grouped = groupByDate(history);
+
+      let html = '';
+      for (const [date, items] of Object.entries(grouped)) {
+        html += `<div class="history-date-section">
+          <div class="history-date-header">${date}</div>`;
+
+        items.forEach(item => {
+          const video = item.videos;
+          if (!video) return;
+
+          const profile = video.profiles || {};
+          const thumbnailUrl = video.thumbnail_url || 'https://via.placeholder.com/280x158?text=No+Thumbnail';
+          const progress = item.watch_progress || 0;
+
+          html += `
+            <div class="history-item" data-video-id="${video.id}">
+              <a href="watch.html?v=${video.id}" class="history-thumbnail">
+                <img src="${thumbnailUrl}" alt="${escapeHtml(video.title)}">
+                ${progress > 0 ? `<div class="history-progress" style="width: ${progress}%"></div>` : ''}
+                ${video.duration ? `<div class="video-duration">${video.duration}</div>` : ''}
+              </a>
+              <div class="history-info">
+                <a href="watch.html?v=${video.id}" class="history-title">${escapeHtml(video.title)}</a>
+                <div class="history-meta">
+                  <a href="profile.html?id=${video.user_id}" class="history-channel">${escapeHtml(profile.username || 'Unknown')}</a>
+                  <span class="history-views">${formatNumber(video.views_count || 0)} views</span>
+                  <span class="history-date">${timeSince(new Date(video.created_at))} ago</span>
+                </div>
+                ${video.description ? `<div class="history-description">${escapeHtml(video.description.replace(/<[^>]*>/g, '').substring(0, 100))}...</div>` : ''}
+              </div>
+              <button class="history-remove-btn" onclick="removeHistoryItem('${video.id}', event)">
+                ${getIcon('close')}
+              </button>
+            </div>
+          `;
+        });
+
+        html += '</div>';
+      }
+
+      historyList.innerHTML = html;
+    }
+
+    function groupByDate(history) {
+      const groups = {};
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      history.forEach(item => {
+        const watchedDate = new Date(item.watched_at);
+        const watchedDay = new Date(watchedDate.getFullYear(), watchedDate.getMonth(), watchedDate.getDate());
+
+        let label;
+        if (watchedDay.getTime() === today.getTime()) {
+          label = 'Today';
+        } else if (watchedDay.getTime() === yesterday.getTime()) {
+          label = 'Yesterday';
+        } else {
+          label = watchedDay.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        }
+
+        if (!groups[label]) groups[label] = [];
+        groups[label].push(item);
+      });
+
+      return groups;
+    }
+
+    async function removeHistoryItem(videoId, event) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (!confirm('Remove this video from your watch history?')) return;
+
+      try {
+        await removeFromWatchHistory(videoId);
+        allHistory = allHistory.filter(item => item.video_id !== videoId);
+        displayHistory(allHistory);
+        showNotification('Removed from watch history', 'success');
+      } catch (error) {
+        console.error('Error removing from history:', error);
+        showNotification('Error removing from history', 'error');
+      }
+    }
+
+    function setupEventListeners() {
+      // Filter buttons
+      document.querySelectorAll('.history-filters .category-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.history-filters .category-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentFilter = btn.dataset.filter;
+          displayHistory(allHistory);
+        });
+      });
+
+      // Search
+      const searchInput = document.getElementById('historySearchInput');
+      searchInput.addEventListener('input', async (e) => {
+        const query = e.target.value.trim();
+        if (query) {
+          const filtered = await searchWatchHistory(query);
+          displayHistory(filtered);
+        } else {
+          displayHistory(allHistory);
+        }
+      });
+
+      // Clear history
+      document.getElementById('clearHistoryBtn').addEventListener('click', async () => {
+        if (!confirm('Are you sure you want to clear all watch history? This action cannot be undone.')) return;
+
+        try {
+          await clearWatchHistory();
+          allHistory = [];
+          displayHistory([]);
+          showNotification('Watch history cleared', 'success');
+        } catch (error) {
+          console.error('Error clearing history:', error);
+          showNotification('Error clearing history', 'error');
+        }
+      });
+
+      // Pause/Resume history
+      document.getElementById('pauseHistoryBtn').addEventListener('click', () => {
+        historyPaused = !historyPaused;
+        localStorage.setItem('historyPaused', historyPaused);
+        updatePauseButton();
+        showNotification(historyPaused ? 'Watch history paused' : 'Watch history resumed', 'info');
+      });
+    }
+
+    function updatePauseButton() {
+      const btn = document.getElementById('pauseHistoryBtn');
+      const icon = document.getElementById('pauseHistoryIcon');
+      const text = document.getElementById('pauseHistoryText');
+
+      if (historyPaused) {
+        icon.innerHTML = getIcon('play');
+        text.textContent = 'Resume watch history';
+      } else {
+        icon.innerHTML = getIcon('pause');
+        text.textContent = 'Pause watch history';
+      }
+    }
+
+    // Global function for remove button
+    window.removeHistoryItem = removeHistoryItem;
+  </script>
+
+  <!-- Adsterra Scripts -->
+  <script async="async" data-cfasync="false" src="https://pl28394065.effectivegatecpm.com/ce630968429585fc33b1cd2e0f35d06a/invoke.js"></script>
+  <div id="container-ce630968429585fc33b1cd2e0f35d06a"></div>
+  <script src="https://pl28394078.effectivegatecpm.com/30/7d/66/307d667458334a8e0ab5a0293231b8b3.js"></script>
+</body>
+</html>
