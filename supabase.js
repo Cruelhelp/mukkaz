@@ -10,9 +10,16 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
   console.error('See config.local.js.example for the required format.');
 }
 
-// Initialize Supabase client
+// Initialize Supabase client with persistent session
 const { createClient } = supabase;
-const supabaseClient = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    storage: window.localStorage
+  }
+});
 
 // Auth helpers
 async function signUp(email, password, username) {
@@ -191,7 +198,7 @@ async function getVideo(videoId) {
   return data;
 }
 
-async function uploadVideo(file, thumbnail, title, description) {
+async function uploadVideo(file, thumbnail, title, description, tags = []) {
   const user = await getCurrentUser();
   if (!user) throw new Error('Not authenticated');
 
@@ -220,7 +227,7 @@ async function uploadVideo(file, thumbnail, title, description) {
     .from('thumbnails')
     .getPublicUrl(thumbnailFileName);
 
-  // Create video record
+  // Create video record with tags
   const { data, error } = await supabaseClient
     .from('videos')
     .insert([{
@@ -229,8 +236,29 @@ async function uploadVideo(file, thumbnail, title, description) {
       description,
       url: videoUrl,
       thumbnail_url: thumbnailUrl,
-      views_count: 0
+      views_count: 0,
+      tags: tags.join(',') // Store tags as comma-separated string
     }])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+async function updateVideo(videoId, updates) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const { data, error } = await supabaseClient
+    .from('videos')
+    .update({
+      title: updates.title,
+      description: updates.description,
+      tags: Array.isArray(updates.tags) ? updates.tags.join(',') : updates.tags
+    })
+    .eq('id', videoId)
+    .eq('user_id', user.id) // Ensure user owns the video
     .select()
     .single();
 
@@ -832,4 +860,137 @@ async function clearSearchHistory() {
     .eq('user_id', user.id);
 
   if (error) throw error;
+}
+
+// ============================================
+// WATCH HISTORY OPERATIONS
+// ============================================
+
+async function addToWatchHistory(videoId, watchProgress = 0) {
+  const user = await getCurrentUser();
+  if (!user) return;
+
+  // Check if entry exists, update if so
+  const { data: existing } = await supabaseClient
+    .from('watch_history')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('video_id', videoId)
+    .single();
+
+  if (existing) {
+    // Update existing entry
+    const { error } = await supabaseClient
+      .from('watch_history')
+      .update({
+        watched_at: new Date().toISOString(),
+        watch_progress: watchProgress
+      })
+      .eq('id', existing.id);
+
+    if (error) console.error('Error updating watch history:', error);
+  } else {
+    // Create new entry
+    const { error } = await supabaseClient
+      .from('watch_history')
+      .insert([{
+        user_id: user.id,
+        video_id: videoId,
+        watch_progress: watchProgress
+      }]);
+
+    if (error) console.error('Error adding to watch history:', error);
+  }
+}
+
+async function getWatchHistory(limit = 50) {
+  const user = await getCurrentUser();
+  if (!user) return [];
+
+  const { data, error } = await supabaseClient
+    .from('watch_history')
+    .select(`
+      *,
+      videos (
+        id,
+        title,
+        description,
+        thumbnail_url,
+        duration,
+        views_count,
+        created_at,
+        user_id,
+        profiles (username, avatar_url)
+      )
+    `)
+    .eq('user_id', user.id)
+    .order('watched_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error('Error fetching watch history:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
+async function clearWatchHistory() {
+  const user = await getCurrentUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const { error } = await supabaseClient
+    .from('watch_history')
+    .delete()
+    .eq('user_id', user.id);
+
+  if (error) throw error;
+}
+
+async function removeFromWatchHistory(videoId) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const { error} = await supabaseClient
+    .from('watch_history')
+    .delete()
+    .eq('user_id', user.id)
+    .eq('video_id', videoId);
+
+  if (error) throw error;
+}
+
+async function searchWatchHistory(query) {
+  const user = await getCurrentUser();
+  if (!user) return [];
+
+  const { data, error } = await supabaseClient
+    .from('watch_history')
+    .select(`
+      *,
+      videos (
+        id,
+        title,
+        description,
+        thumbnail_url,
+        duration,
+        views_count,
+        created_at,
+        user_id,
+        profiles (username, avatar_url)
+      )
+    `)
+    .eq('user_id', user.id)
+    .order('watched_at', { ascending: false });
+
+  if (error) {
+    console.error('Error searching watch history:', error);
+    return [];
+  }
+
+  // Filter by query
+  return (data || []).filter(item =>
+    item.videos?.title?.toLowerCase().includes(query.toLowerCase()) ||
+    item.videos?.profiles?.username?.toLowerCase().includes(query.toLowerCase())
+  );
 }

@@ -30,7 +30,8 @@ function loadIcons() {
     deleteIcon: 'delete',
     logoutIcon: 'logout',
     historyIcon: 'history',
-    libraryIcon: 'library'
+    libraryIcon: 'library',
+    subscriptionsIcon: 'library'
   };
 
   Object.entries(iconElements).forEach(([elementId, iconName]) => {
@@ -119,45 +120,56 @@ function closeSidebar() {
 async function checkAuthState() {
   try {
     currentUserState = await getCurrentUser();
-
-    // Update sidebar based on auth state
-    const authSection = document.getElementById('authSection');
-    if (!authSection) return;
-
-    if (currentUserState) {
-      // Show auth options even if profile fetch fails
-      authSection.innerHTML = `
-        <a href="profile.html" class="sidebar-item">
-          ${getIcon('user')}
-          <span>My Profile</span>
-        </a>
-        <a href="upload.html" class="sidebar-item">
-          ${getIcon('upload')}
-          <span>Upload Video</span>
-        </a>
-        <div class="sidebar-item" id="logoutBtn" style="cursor: pointer;">
-          ${getIcon('logout')}
-          <span>Sign Out</span>
-        </div>
-      `;
-
-      document.getElementById('logoutBtn').addEventListener('click', handleSignOut);
-    } else {
-      authSection.innerHTML = `
-        <div class="sidebar-item" id="sidebarSignInBtn" style="cursor: pointer;">
-          ${getIcon('user')}
-          <span>Sign In</span>
-        </div>
-      `;
-
-      const sidebarSignInBtn = document.getElementById('sidebarSignInBtn');
-      if (sidebarSignInBtn) {
-        sidebarSignInBtn.addEventListener('click', openModal);
-      }
-    }
   } catch (error) {
     console.error('Error checking auth state:', error);
     showNotification('Error loading user data. Some features may not work.', 'error');
+  }
+
+  // Load subscriptions
+  await loadSubscriptions();
+}
+
+// Load and display subscriptions
+async function loadSubscriptions() {
+  const subscriptionsList = document.getElementById('subscriptionsList');
+  const subscriptionsSection = document.getElementById('subscriptionsSidebarSection');
+
+  if (!subscriptionsList || !subscriptionsSection) return;
+
+  // Hide section if not logged in
+  if (!currentUserState) {
+    subscriptionsSection.style.display = 'none';
+    return;
+  }
+
+  subscriptionsSection.style.display = 'block';
+
+  try {
+    const subscriptions = await getSubscriptions();
+
+    if (!subscriptions || subscriptions.length === 0) {
+      subscriptionsList.innerHTML = '';
+      return;
+    }
+
+    // Render subscription items
+    subscriptionsList.innerHTML = subscriptions.map(sub => {
+      const profile = sub.profiles;
+      if (!profile) return '';
+
+      const avatarUrl = profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username}`;
+
+      return `
+        <a href="profile.html?id=${profile.id}" class="sidebar-item subscription-item">
+          <img src="${avatarUrl}" alt="${escapeHtml(profile.username)}" class="subscription-avatar">
+          <span class="subscription-username">${escapeHtml(profile.username)}</span>
+        </a>
+      `;
+    }).join('');
+
+  } catch (error) {
+    console.error('Error loading subscriptions:', error);
+    subscriptionsList.innerHTML = '';
   }
 }
 
@@ -165,6 +177,10 @@ async function checkAuthState() {
 async function renderNavbar() {
   const navbarRight = document.getElementById('navbarRight');
   if (!navbarRight) return;
+
+  // Hide skeleton loader
+  const skeleton = document.getElementById('navbarSkeleton');
+  if (skeleton) skeleton.style.display = 'none';
 
   if (currentUserState) {
     try {
@@ -177,11 +193,30 @@ async function renderNavbar() {
           </a>
           <div class="nav-icon notification-bell" id="notificationBell" style="position: relative; cursor: pointer;">
             ${getIcon('bell')}
-            <span class="notification-count hidden" id="notificationBadge">0</span>
+            <span class="notification-count" id="notificationBadge"></span>
           </div>
-          <a href="profile.html">
-            <img src="${profile.avatar_url}" alt="${profile.username || 'User'}" class="avatar">
-          </a>
+          <div class="avatar-dropdown-container">
+            <img src="${profile.avatar_url}" alt="${profile.username || 'User'}" class="avatar avatar-clickable" id="avatarDropdownBtn">
+            <div class="avatar-dropdown hidden" id="avatarDropdown">
+              <a href="profile.html" class="dropdown-item">
+                ${getIcon('user')}
+                <span>My Profile</span>
+              </a>
+              <a href="my-videos.html" class="dropdown-item">
+                ${getIcon('library')}
+                <span>My Videos</span>
+              </a>
+              <a href="upload.html" class="dropdown-item">
+                ${getIcon('upload')}
+                <span>Upload Video</span>
+              </a>
+              <div class="dropdown-divider"></div>
+              <div class="dropdown-item" id="dropdownLogout">
+                ${getIcon('logout')}
+                <span>Logout</span>
+              </div>
+            </div>
+          </div>
         `;
       } else {
         // Profile exists but no avatar
@@ -191,11 +226,32 @@ async function renderNavbar() {
           </a>
           <div class="nav-icon notification-bell" id="notificationBell" style="position: relative; cursor: pointer;">
             ${getIcon('bell')}
-            <span class="notification-count hidden" id="notificationBadge">0</span>
+            <span class="notification-count" id="notificationBadge"></span>
           </div>
-          <a href="profile.html" class="nav-icon">
-            ${getIcon('user')}
-          </a>
+          <div class="avatar-dropdown-container">
+            <div class="nav-icon avatar-clickable" id="avatarDropdownBtn">
+              ${getIcon('user')}
+            </div>
+            <div class="avatar-dropdown hidden" id="avatarDropdown">
+              <a href="profile.html" class="dropdown-item">
+                ${getIcon('user')}
+                <span>My Profile</span>
+              </a>
+              <a href="my-videos.html" class="dropdown-item">
+                ${getIcon('library')}
+                <span>My Videos</span>
+              </a>
+              <a href="upload.html" class="dropdown-item">
+                ${getIcon('upload')}
+                <span>Upload Video</span>
+              </a>
+              <div class="dropdown-divider"></div>
+              <div class="dropdown-item" id="dropdownLogout">
+                ${getIcon('logout')}
+                <span>Logout</span>
+              </div>
+            </div>
+          </div>
         `;
       }
 
@@ -206,6 +262,9 @@ async function renderNavbar() {
       // Poll for new notifications every 30 seconds
       setInterval(updateNotificationBadge, 30000);
 
+      // Setup avatar dropdown
+      setupAvatarDropdown();
+
     } catch (error) {
       console.error('Error loading profile:', error);
       // Fallback if profile can't be loaded
@@ -213,13 +272,34 @@ async function renderNavbar() {
         <a href="upload.html" class="nav-icon">
           ${getIcon('upload')}
         </a>
-        <a href="profile.html" class="nav-icon">
-          ${getIcon('user')}
-        </a>
-        <button class="btn-secondary" onclick="handleSignOut()" style="margin-left: 1rem; padding: 0.5rem 1rem;">
-          Sign Out
-        </button>
+        <div class="avatar-dropdown-container">
+          <div class="nav-icon avatar-clickable" id="avatarDropdownBtn">
+            ${getIcon('user')}
+          </div>
+          <div class="avatar-dropdown hidden" id="avatarDropdown">
+            <a href="profile.html" class="dropdown-item">
+              ${getIcon('user')}
+              <span>My Profile</span>
+            </a>
+            <a href="my-videos.html" class="dropdown-item">
+              ${getIcon('library')}
+              <span>My Videos</span>
+            </a>
+            <a href="upload.html" class="dropdown-item">
+              ${getIcon('upload')}
+              <span>Upload Video</span>
+            </a>
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-item" id="dropdownLogout">
+              ${getIcon('logout')}
+              <span>Logout</span>
+            </div>
+          </div>
+        </div>
       `;
+
+      // Setup avatar dropdown for fallback
+      setupAvatarDropdown();
     }
   } else {
     navbarRight.innerHTML = `
@@ -356,8 +436,10 @@ async function updateNotificationBadge() {
     if (count > 0) {
       badge.textContent = count > 99 ? '99+' : count;
       badge.classList.remove('hidden');
+      badge.classList.add('has-notifications');
     } else {
       badge.classList.add('hidden');
+      badge.classList.remove('has-notifications');
     }
   } catch (error) {
     console.error('Error updating badge:', error);
@@ -381,6 +463,47 @@ async function markAllNotificationsAsRead() {
   } catch (error) {
     console.error('Error marking all as read:', error);
     showNotification('Error updating notifications', 'error');
+  }
+}
+
+// Setup avatar dropdown
+function setupAvatarDropdown() {
+  const avatarBtn = document.getElementById('avatarDropdownBtn');
+  const dropdown = document.getElementById('avatarDropdown');
+  const logoutBtn = document.getElementById('dropdownLogout');
+
+  if (!avatarBtn || !dropdown) return;
+
+  let dropdownOpen = false;
+
+  // Toggle dropdown on avatar click
+  avatarBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dropdownOpen = !dropdownOpen;
+
+    if (dropdownOpen) {
+      dropdown.classList.remove('hidden');
+    } else {
+      dropdown.classList.add('hidden');
+    }
+  });
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (dropdownOpen && !dropdown.contains(e.target) && !avatarBtn.contains(e.target)) {
+      dropdown.classList.add('hidden');
+      dropdownOpen = false;
+    }
+  });
+
+  // Handle logout
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      dropdown.classList.add('hidden');
+      dropdownOpen = false;
+      await handleSignOut();
+    });
   }
 }
 
@@ -661,6 +784,174 @@ document.addEventListener('dragover', (e) => {
 
 document.addEventListener('drop', (e) => {
   e.preventDefault();
+});
+
+// ========================================
+// GLOBAL SEARCH FUNCTIONALITY
+// ========================================
+
+// Available tags for search suggestions
+const availableTags = [
+  'big_batty', 'phat_pussy', 'backshot', 'hood_gyal', 'tight_pussy',
+  'kingston', 'st_andrew', 'st_catherine', 'portmore', 'spanish_town',
+  'montego_bay', 'mandeville', 'ocho_rios', 'bumper', 'cocky',
+  'fuck', 'breed', 'suck', 'badman'
+];
+
+// Initialize global search suggestions
+function initGlobalSearchSuggestions() {
+  const searchInput = document.getElementById('searchInput');
+  const searchBtn = document.getElementById('searchBtn');
+  const searchClearBtn = document.getElementById('searchClearBtn');
+
+  if (!searchInput || !searchBtn) return;
+
+  // Create suggestions dropdown if it doesn't exist
+  let searchSuggestions = document.getElementById('searchSuggestions');
+  if (!searchSuggestions) {
+    searchSuggestions = document.createElement('div');
+    searchSuggestions.id = 'searchSuggestions';
+    searchSuggestions.className = 'search-suggestions hidden';
+    searchInput.parentElement.appendChild(searchSuggestions);
+  }
+
+  // Setup clear button
+  if (searchClearBtn) {
+    searchClearBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      searchClearBtn.style.display = 'none';
+      searchInput.focus();
+      searchSuggestions.classList.add('hidden');
+    });
+  }
+
+  // Show suggestions as user types
+  searchInput.addEventListener('input', (e) => {
+    const query = e.target.value.trim().toLowerCase();
+
+    // Show/hide clear button
+    if (searchClearBtn) {
+      searchClearBtn.style.display = e.target.value ? 'block' : 'none';
+    }
+
+    if (query.length < 2) {
+      searchSuggestions.classList.add('hidden');
+      return;
+    }
+
+    // Filter tags that match the query
+    const matchingTags = availableTags.filter(tag =>
+      tag.toLowerCase().includes(query)
+    );
+
+    if (matchingTags.length === 0) {
+      searchSuggestions.classList.add('hidden');
+      return;
+    }
+
+    // Populate suggestions dropdown
+    searchSuggestions.innerHTML = matchingTags.map(tag => {
+      const displayName = tag.split('_').map(word =>
+        word.charAt(0).toUpperCase() + word.slice(1)
+      ).join(' ');
+
+      return `
+        <div class="suggestion-item" data-tag="${tag}">
+          <span class="suggestion-label">Tag:</span>
+          <span class="suggestion-tag">${displayName}</span>
+        </div>
+      `;
+    }).join('');
+
+    // Add click handlers to suggestion items
+    searchSuggestions.querySelectorAll('.suggestion-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const tag = item.dataset.tag;
+        const displayName = tag.split('_').map(word =>
+          word.charAt(0).toUpperCase() + word.slice(1)
+        ).join(' ');
+        searchInput.value = displayName;
+        searchSuggestions.classList.add('hidden');
+        handleGlobalSearch();
+      });
+    });
+
+    searchSuggestions.classList.remove('hidden');
+  });
+
+  // Hide suggestions when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!searchInput.contains(e.target) && !searchSuggestions.contains(e.target)) {
+      searchSuggestions.classList.add('hidden');
+    }
+  });
+
+  // Hide suggestions on escape key
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      searchSuggestions.classList.add('hidden');
+    }
+  });
+
+  // Search button click
+  searchBtn.addEventListener('click', handleGlobalSearch);
+
+  // Enter key to search
+  searchInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      handleGlobalSearch();
+    }
+  });
+}
+
+// Global search handler - redirects to index.html with search query
+function handleGlobalSearch() {
+  const searchInput = document.getElementById('searchInput');
+  if (!searchInput) return;
+
+  const searchTerm = searchInput.value.trim();
+  if (!searchTerm) return;
+
+  // Store search query in sessionStorage
+  sessionStorage.setItem('searchQuery', searchTerm);
+
+  // If on index.html, trigger search directly
+  if (window.location.pathname.endsWith('index.html') || window.location.pathname === '/' || window.location.pathname.endsWith('/')) {
+    // Check if handleSearch function exists (from index.html)
+    if (typeof handleSearch === 'function') {
+      handleSearch();
+    }
+  } else {
+    // Redirect to index.html with search query
+    window.location.href = `index.html?search=${encodeURIComponent(searchTerm)}`;
+  }
+}
+
+// Initialize global search on page load
+document.addEventListener('DOMContentLoaded', () => {
+  initGlobalSearchSuggestions();
+
+  // Check for search query in URL or sessionStorage
+  const urlParams = new URLSearchParams(window.location.search);
+  const searchFromUrl = urlParams.get('search');
+  const searchFromSession = sessionStorage.getItem('searchQuery');
+
+  if (searchFromUrl || searchFromSession) {
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+      searchInput.value = searchFromUrl || searchFromSession;
+
+      // If on index.html, trigger search
+      if (window.location.pathname.endsWith('index.html') || window.location.pathname === '/' || window.location.pathname.endsWith('/')) {
+        if (typeof handleSearch === 'function') {
+          setTimeout(() => handleSearch(), 500);
+        }
+      }
+    }
+
+    // Clear sessionStorage after using it
+    sessionStorage.removeItem('searchQuery');
+  }
 });
 
 // Log app version

@@ -1,34 +1,43 @@
 // Utility Functions
 
 function timeSince(timestamp) {
-  const seconds = Math.floor((new Date() - new Date(timestamp)) / 1000);
+  if (!timestamp) return "recently";
+
+  const now = new Date();
+  const then = new Date(timestamp);
+
+  if (isNaN(then.getTime())) return "recently";
+
+  const seconds = Math.floor((now - then) / 1000);
+
+  if (seconds < 0) return "recently";
 
   let interval = Math.floor(seconds / 31536000);
-  if (interval > 1) {
-    return interval + " years";
+  if (interval >= 1) {
+    return interval + (interval === 1 ? " year" : " years");
   }
 
   interval = Math.floor(seconds / 2592000);
-  if (interval > 1) {
-    return interval + " months";
+  if (interval >= 1) {
+    return interval + (interval === 1 ? " month" : " months");
   }
 
   interval = Math.floor(seconds / 86400);
-  if (interval > 1) {
-    return interval + " days";
+  if (interval >= 1) {
+    return interval + (interval === 1 ? " day" : " days");
   }
 
   interval = Math.floor(seconds / 3600);
-  if (interval > 1) {
-    return interval + " hours";
+  if (interval >= 1) {
+    return interval + (interval === 1 ? " hour" : " hours");
   }
 
   interval = Math.floor(seconds / 60);
-  if (interval > 1) {
-    return interval + " minutes";
+  if (interval >= 1) {
+    return interval + (interval === 1 ? " minute" : " minutes");
   }
 
-  return Math.floor(seconds) + " seconds";
+  return seconds + (seconds === 1 ? " second" : " seconds");
 }
 
 function formatNumber(num) {
