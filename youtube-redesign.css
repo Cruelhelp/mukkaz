@@ -738,6 +738,23 @@ body, .video-title, .video-meta, .channel-name, .navbar, .sidebar {
   gap: 14px;
 }
 
+/* Empty State - Centered Placeholder */
+.empty-state-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  width: 100%;
+}
+
+.empty-state-content {
+  text-align: center;
+  padding: 3rem 2rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  max-width: 500px;
+}
+
 /* Video List View - Original */
 .video-list {
   display: grid;
@@ -919,11 +936,24 @@ body, .video-title, .video-meta, .channel-name, .navbar, .sidebar {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s;
+  transition: opacity 0.3s ease, transform 0.3s;
 }
 
 .video-card:hover .video-thumbnail {
   transform: scale(1.05);
+}
+
+.video-preview-hover {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .video-duration {
@@ -935,6 +965,7 @@ body, .video-title, .video-meta, .channel-name, .navbar, .sidebar {
   border-radius: 4px;
   font-size: 12px;
   font-weight: 500;
+  z-index: 2;
 }
 
 .video-info {

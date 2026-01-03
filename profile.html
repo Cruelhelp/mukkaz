@@ -56,19 +56,19 @@
 
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
-    <!-- Home Section -->
+    <!-- Home, Trending & History Section -->
     <div class="sidebar-section">
       <a href="index.html" class="sidebar-item">
         <span id="homeIcon"></span>
         <span>Home</span>
       </a>
-    </div>
-
-    <!-- Trending Section -->
-    <div class="sidebar-section">
       <a href="index.html#trending" class="sidebar-item">
         <span id="trendingIcon"></span>
         <span>Trending</span>
+      </a>
+      <a href="history.html" class="sidebar-item">
+        <span id="historyIcon"></span>
+        <span>History</span>
       </a>
     </div>
 
@@ -81,14 +81,6 @@
       <div id="subscriptionsList">
         <!-- Subscriptions loaded by JavaScript -->
       </div>
-    </div>
-
-    <!-- History Section -->
-    <div class="sidebar-section">
-      <a href="index.html#history" class="sidebar-item">
-        <span id="historyIcon"></span>
-        <span>History</span>
-      </a>
     </div>
   </aside>
 
@@ -123,9 +115,6 @@
       <div class="profile-tabs">
         <button class="profile-tab active" data-tab="settings">
           <span id="settingsIcon"></span> Settings
-        </button>
-        <button class="profile-tab" data-tab="videos">
-          <span id="videosIcon"></span> My Videos
         </button>
         <button class="profile-tab" data-tab="stats">
           <span id="statsIcon"></span> Statistics
@@ -433,7 +422,6 @@
     function initializeProfileTabs() {
       // Add icons to tabs
       document.getElementById('settingsIcon').innerHTML = getIcon('settings');
-      document.getElementById('videosIcon').innerHTML = getIcon('video');
       document.getElementById('statsIcon').innerHTML = getIcon('chart');
       document.getElementById('privacyIcon').innerHTML = getIcon('lock');
 
@@ -455,8 +443,6 @@
           if (tabName === 'settings') {
             document.querySelectorAll('.settings-section')[0].style.display = 'block'; // Account Info
             document.querySelectorAll('.settings-section')[1].style.display = 'block'; // Profile Info
-          } else if (tabName === 'videos') {
-            window.location.href = 'my-videos.html';
           } else if (tabName === 'stats') {
             document.querySelectorAll('.settings-section')[4].style.display = 'block'; // Statistics
           } else if (tabName === 'privacy') {

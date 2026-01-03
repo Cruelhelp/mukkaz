@@ -56,19 +56,19 @@
 
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
-    <!-- Home Section -->
+    <!-- Home, Trending & History Section -->
     <div class="sidebar-section">
       <a href="index.html" class="sidebar-item">
         <span id="homeIcon"></span>
         <span>Home</span>
       </a>
-    </div>
-
-    <!-- Trending Section -->
-    <div class="sidebar-section">
       <a href="index.html#trending" class="sidebar-item">
         <span id="trendingIcon"></span>
         <span>Trending</span>
+      </a>
+      <a href="history.html" class="sidebar-item">
+        <span id="historyIcon"></span>
+        <span>History</span>
       </a>
     </div>
 
@@ -81,14 +81,6 @@
       <div id="subscriptionsList">
         <!-- Subscriptions loaded by JavaScript -->
       </div>
-    </div>
-
-    <!-- History Section -->
-    <div class="sidebar-section">
-      <a href="index.html#history" class="sidebar-item">
-        <span id="historyIcon"></span>
-        <span>History</span>
-      </a>
     </div>
   </aside>
 
@@ -276,13 +268,14 @@
 
         if (myVideos.length === 0) {
           userVideos.innerHTML = `
-            <div style="text-align: center; padding: 4rem 2rem; background-color: var(--bg-secondary); border-radius: 12px;">
-              <div style="font-size: 4rem; margin-bottom: 1rem;">📹</div>
-              <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">No Videos Yet</h3>
-              <p class="secondary" style="margin-bottom: 2rem;">You haven't uploaded any videos yet.</p>
-              <a href="upload.html" class="btn-primary" style="display: inline-block; font-size: 1.1rem; padding: 1rem 3rem;">
-                Upload Your First Video
-              </a>
+            <div class="empty-state-container">
+              <div class="empty-state-content">
+                <h3 style="font-size: 1.5rem; margin-bottom: 1rem; color: #fff;">No Videos Yet</h3>
+                <p class="secondary" style="margin-bottom: 2rem; font-size: 1rem;">You haven't uploaded any videos yet.</p>
+                <a href="upload.html" class="btn-primary">
+                  Upload Your First Video
+                </a>
+              </div>
             </div>
           `;
           return;

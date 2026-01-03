@@ -51,6 +51,7 @@ function createVideoCard(video, layout = 'grid') {
   const username = profile.username || 'Unknown';
   const avatarUrl = profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`;
   const thumbnailUrl = video.thumbnail_url || 'https://via.placeholder.com/320x180?text=No+Thumbnail';
+  const videoUrl = video.url || '';
 
   const card = document.createElement('div');
   card.className = `video-card ${layout === 'list' ? 'video-card-list' : ''} fade-in`;
@@ -65,6 +66,7 @@ function createVideoCard(video, layout = 'grid') {
           class="video-thumbnail"
           loading="lazy"
         >
+        ${videoUrl ? `<video class="video-preview-hover" muted loop preload="none" playsinline><source src="${videoUrl}" type="video/mp4"></video>` : ''}
         ${video.duration ? `<div class="video-duration">${formatDuration(video.duration)}</div>` : ''}
       </div>
       <div class="video-info">
@@ -91,6 +93,37 @@ function createVideoCard(video, layout = 'grid') {
     const lazyLoader = new LazyLoader();
     lazyLoader.observe(`img[data-src]`);
   }, 0);
+
+  // Add hover preview functionality
+  if (videoUrl) {
+    const thumbnailContainer = card.querySelector('.video-thumbnail-container');
+    const previewVideo = card.querySelector('.video-preview-hover');
+    const thumbnail = card.querySelector('.video-thumbnail');
+    let hoverTimeout;
+
+    thumbnailContainer.addEventListener('mouseenter', () => {
+      // Delay preview by 500ms (like YouTube)
+      hoverTimeout = setTimeout(() => {
+        if (previewVideo) {
+          previewVideo.style.opacity = '1';
+          previewVideo.play().catch(err => {
+            console.log('Preview autoplay failed:', err);
+          });
+          thumbnail.style.opacity = '0';
+        }
+      }, 500);
+    });
+
+    thumbnailContainer.addEventListener('mouseleave', () => {
+      clearTimeout(hoverTimeout);
+      if (previewVideo) {
+        previewVideo.pause();
+        previewVideo.currentTime = 0;
+        previewVideo.style.opacity = '0';
+        thumbnail.style.opacity = '1';
+      }
+    });
+  }
 
   return card;
 }
