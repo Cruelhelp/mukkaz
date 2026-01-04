@@ -9,6 +9,12 @@ export default async function handler(req, res) {
     if (!videoId) {
       return res.status(400).json({ success: false, errors: [{ message: 'Missing videoId in request body' }] });
     }
+    // Use environment variable if available; otherwise fallback to known account ID.
+    const accountId = process.env.CF_ACCOUNT_ID || '13faa7514f6b0dfd763ca79c8a3cc3f4';
+    const streamToken = process.env.CF_STREAM_TOKEN;
+    if (!streamToken) {
+      return res.status(500).json({ success: false, errors: [{ message: 'Cloudflare Stream token not configured (CF_STREAM_TOKEN)' }] });
+    }
     // Build body for Cloudflare API
     const body = {};
     if (metadata?.title) {
@@ -18,11 +24,11 @@ export default async function handler(req, res) {
       body.requireSignedURLs = metadata.requireSignedURLs;
     }
     const cfResponse = await fetch(
-      `https://api.cloudflare.com/client/v4/accounts/${process.env.CF_ACCOUNT_ID}/stream/${encodeURIComponent(videoId)}`,
+      `https://api.cloudflare.com/client/v4/accounts/${accountId}/stream/${encodeURIComponent(videoId)}`,
       {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${process.env.CF_STREAM_TOKEN}`,
+          Authorization: `Bearer ${streamToken}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(body)
