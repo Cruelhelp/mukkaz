@@ -1,13 +1,18 @@
-// Cloudflare Stream API Integration
+// Cloudflare Stream integration patched to use Vercel serverless endpoints.
+// Instead of calling the Cloudflare REST API directly from the browser (which
+// violates CORS and exposes your API token), these functions now proxy
+// uploads and metadata operations through API routes under `/api/cloudflare/*`.
 
 /**
- * Upload video to Cloudflare Stream
+ * Upload video to Cloudflare Stream via serverless API.
  * @param {File|Blob} videoFile - The video file to upload
  * @param {Object} metadata - Optional metadata (title, description, etc.)
  * @param {Function} onProgress - Progress callback (percentage)
  * @returns {Promise<Object>} Stream video data with uid, playback URLs, thumbnail
  */
-async function uploadToCloudflareStream(videoFile, metadata = {}, onProgress = null) {
+export async function uploadToCloudflareStream(videoFile, metadata = {}, onProgress = null) {
+  // Basic sanity check for config; accountId is still required even though
+  // uploads now go through your own API.
   if (!CLOUDFLARE_CONFIG.accountId || CLOUDFLARE_CONFIG.accountId === 'YOUR_ACCOUNT_ID') {
     throw new Error('Cloudflare Account ID not configured. Please update config.cloudflare.js');
   }
@@ -54,8 +59,10 @@ async function uploadToCloudflareStream(videoFile, metadata = {}, onProgress = n
         reject(new Error('Network error during upload'));
       });
 
-      xhr.open('POST', CLOUDFLARE_CONFIG.uploadUrl);
-      xhr.setRequestHeader('Authorization', `Bearer ${CLOUDFLARE_CONFIG.apiToken}`);
+      // Use your own API route instead of Cloudflare directly. This route
+      // proxies the upload to Cloudflare on the server side.
+      xhr.open('POST', '/api/cloudflare/upload');
+      // Do NOT set the Authorization header here; it will be added server-side.
       xhr.send(formData);
     });
   } catch (error) {
@@ -65,18 +72,14 @@ async function uploadToCloudflareStream(videoFile, metadata = {}, onProgress = n
 }
 
 /**
- * Get video status and details from Cloudflare Stream
+ * Get video status and details from Cloudflare Stream via serverless API.
  * @param {string} videoId - The Cloudflare Stream video UID
  * @returns {Promise<Object>} Video details including status, duration, etc.
  */
-async function getStreamStatus(videoId) {
+export async function getStreamStatus(videoId) {
   try {
-    const response = await fetch(CLOUDFLARE_CONFIG.getVideoUrl(videoId), {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${CLOUDFLARE_CONFIG.apiToken}`,
-        'Content-Type': 'application/json'
-      }
+    const response = await fetch(`/api/cloudflare/status?id=${encodeURIComponent(videoId)}`, {
+      method: 'GET'
     });
 
     const data = await response.json();
@@ -93,17 +96,14 @@ async function getStreamStatus(videoId) {
 }
 
 /**
- * Delete video from Cloudflare Stream
+ * Delete video from Cloudflare Stream via serverless API.
  * @param {string} videoId - The Cloudflare Stream video UID
  * @returns {Promise<boolean>} True if deleted successfully
  */
-async function deleteStream(videoId) {
+export async function deleteStream(videoId) {
   try {
-    const response = await fetch(CLOUDFLARE_CONFIG.deleteVideoUrl(videoId), {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${CLOUDFLARE_CONFIG.apiToken}`
-      }
+    const response = await fetch(`/api/cloudflare/delete?id=${encodeURIComponent(videoId)}`, {
+      method: 'DELETE'
     });
 
     const data = await response.json();
@@ -120,13 +120,13 @@ async function deleteStream(videoId) {
 }
 
 /**
- * Wait for video to finish processing
+ * Wait for video to finish processing via repeated status checks.
  * @param {string} videoId - The Cloudflare Stream video UID
  * @param {Function} onProgress - Callback with status updates
  * @param {number} maxAttempts - Maximum polling attempts (default 60 = 5 minutes)
  * @returns {Promise<Object>} Final video details
  */
-async function waitForProcessing(videoId, onProgress = null, maxAttempts = 60) {
+export async function waitForProcessing(videoId, onProgress = null, maxAttempts = 60) {
   let attempts = 0;
 
   const poll = async () => {
@@ -153,7 +153,7 @@ async function waitForProcessing(videoId, onProgress = null, maxAttempts = 60) {
     }
 
     // Wait 5 seconds before next poll
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    await new Promise((resolve) => setTimeout(resolve, 5000));
     return poll();
   };
 
@@ -161,14 +161,16 @@ async function waitForProcessing(videoId, onProgress = null, maxAttempts = 60) {
 }
 
 /**
- * Get thumbnail URL for a specific timestamp
+ * Get thumbnail URL for a specific timestamp. This still references the
+ * videodelivery.net domain directly because thumbnails are publicly
+ * accessible and do not require authentication or CORS.
  * @param {string} videoId - The Cloudflare Stream video UID
  * @param {number} time - Time in seconds (optional, defaults to middle)
  * @param {number} width - Thumbnail width (optional)
  * @param {number} height - Thumbnail height (optional)
  * @returns {string} Thumbnail URL
  */
-function getThumbnailUrl(videoId, time = null, width = 640, height = 360) {
+export function getThumbnailUrl(videoId, time = null, width = 640, height = 360) {
   let url = `https://videodelivery.net/${videoId}/thumbnails/thumbnail.jpg`;
   const params = [];
 
@@ -192,48 +194,37 @@ function getThumbnailUrl(videoId, time = null, width = 640, height = 360) {
 }
 
 /**
- * Get HLS manifest URL for playback
+ * Get HLS manifest URL for playback. Public and does not require auth.
  * @param {string} videoId - The Cloudflare Stream video UID
  * @returns {string} HLS manifest URL
  */
-function getHLSUrl(videoId) {
+export function getHLSUrl(videoId) {
   return `https://videodelivery.net/${videoId}/manifest/video.m3u8`;
 }
 
 /**
- * Get DASH manifest URL for playback
+ * Get DASH manifest URL for playback. Public and does not require auth.
  * @param {string} videoId - The Cloudflare Stream video UID
  * @returns {string} DASH manifest URL
  */
-function getDASHUrl(videoId) {
+export function getDASHUrl(videoId) {
   return `https://videodelivery.net/${videoId}/manifest/video.mpd`;
 }
 
 /**
- * Update video metadata
+ * Update video metadata via serverless API.
  * @param {string} videoId - The Cloudflare Stream video UID
  * @param {Object} metadata - Metadata to update (name, requireSignedURLs, etc.)
  * @returns {Promise<Object>} Updated video details
  */
-async function updateStreamMetadata(videoId, metadata) {
+export async function updateStreamMetadata(videoId, metadata) {
   try {
-    const body = {};
-
-    if (metadata.title) {
-      body.meta = { name: metadata.title };
-    }
-
-    if (metadata.requireSignedURLs !== undefined) {
-      body.requireSignedURLs = metadata.requireSignedURLs;
-    }
-
-    const response = await fetch(CLOUDFLARE_CONFIG.getVideoUrl(videoId), {
+    const response = await fetch('/api/cloudflare/update', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${CLOUDFLARE_CONFIG.apiToken}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify({ videoId, metadata })
     });
 
     const data = await response.json();
@@ -250,30 +241,23 @@ async function updateStreamMetadata(videoId, metadata) {
 }
 
 /**
- * Upload from URL (copy video from another URL to Cloudflare Stream)
+ * Upload a video from a remote URL via serverless API.
  * @param {string} url - Video URL to copy from
  * @param {Object} metadata - Optional metadata
  * @returns {Promise<Object>} Stream video data
  */
-async function uploadFromURL(url, metadata = {}) {
+export async function uploadFromURL(url, metadata = {}) {
   if (!CLOUDFLARE_CONFIG.accountId || CLOUDFLARE_CONFIG.accountId === 'YOUR_ACCOUNT_ID') {
     throw new Error('Cloudflare Account ID not configured');
   }
 
   try {
-    const body = { url };
-
-    if (metadata.title) {
-      body.meta = { name: metadata.title };
-    }
-
-    const response = await fetch(CLOUDFLARE_CONFIG.uploadUrl, {
+    const response = await fetch('/api/cloudflare/upload-url', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${CLOUDFLARE_CONFIG.apiToken}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify({ url, metadata })
     });
 
     const data = await response.json();
