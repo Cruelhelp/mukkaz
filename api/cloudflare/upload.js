@@ -24,6 +24,9 @@ export default async function handler(req, res) {
           Authorization: `Bearer ${process.env.CF_STREAM_TOKEN}`
           // ❌ DO NOT set Content-Type manually
         },
+        // When passing a streaming body, Node.js requires the duplex option.
+        // See https://nodejs.org/api/globals.html#fetch for details.
+        duplex: 'half',
         body: req
       }
     );
