@@ -1,15 +1,14 @@
-// Cloudflare Stream integration patched to use Vercel serverless endpoints.
-// Uses classic browser JS (NO ES MODULES).
-// All Cloudflare API calls are proxied via /api/cloudflare/* routes.
+// Cloudflare Stream integration (SAFE, CLASSIC SCRIPT)
+// All Cloudflare API calls go through Vercel serverless routes.
 
 /**
- * Upload video to Cloudflare Stream via serverless API.
+ * Upload video to Cloudflare Stream
  */
 async function uploadToCloudflareStream(videoFile, metadata = {}, onProgress = null) {
   if (
     !window.CLOUDFLARE_CONFIG ||
     !CLOUDFLARE_CONFIG.accountId ||
-    CLOUDFLARE_CONFIG.accountId === '13faa7514f6b0dfd763ca79c8a3cc3f4'
+    CLOUDFLARE_CONFIG.accountId === 'YOUR_ACCOUNT_ID'
   ) {
     throw new Error('Cloudflare Account ID not configured.');
   }
@@ -29,34 +28,26 @@ async function uploadToCloudflareStream(videoFile, metadata = {}, onProgress = n
     if (onProgress) {
       xhr.upload.onprogress = (e) => {
         if (e.lengthComputable) {
-          const percent = Math.round((e.loaded / e.total) * 100);
-          onProgress(percent);
+          onProgress(Math.round((e.loaded / e.total) * 100));
         }
       };
     }
 
     xhr.onload = () => {
       try {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          const response = JSON.parse(xhr.responseText);
-          if (response.success) {
-            resolve(response.result);
-          } else {
-            reject(
-              new Error(response.errors?.[0]?.message || 'Cloudflare upload failed')
-            );
-          }
+        const res = JSON.parse(xhr.responseText);
+        if (xhr.status >= 200 && xhr.status < 300 && res.success) {
+          resolve(res.result);
         } else {
-          reject(new Error(`Upload failed with status ${xhr.status}`));
+          reject(new Error(res.errors?.[0]?.message || 'Upload failed'));
         }
-      } catch (err) {
-        reject(err);
+      } catch (e) {
+        reject(e);
       }
     };
 
     xhr.onerror = () => reject(new Error('Network error during upload'));
 
-    // IMPORTANT: call your Vercel serverless proxy
     xhr.open('POST', '/api/cloudflare/upload');
     xhr.send(formData);
   });
@@ -66,16 +57,9 @@ async function uploadToCloudflareStream(videoFile, metadata = {}, onProgress = n
  * Get video status
  */
 async function getStreamStatus(videoId) {
-  const response = await fetch(
-    `/api/cloudflare/status?id=${encodeURIComponent(videoId)}`
-  );
-
-  const data = await response.json();
-
-  if (!response.ok || !data.success) {
-    throw new Error(data.errors?.[0]?.message || 'Failed to get video status');
-  }
-
+  const res = await fetch(`/api/cloudflare/status?id=${encodeURIComponent(videoId)}`);
+  const data = await res.json();
+  if (!res.ok || !data.success) throw new Error(data.errors?.[0]?.message);
   return data.result;
 }
 
@@ -83,17 +67,11 @@ async function getStreamStatus(videoId) {
  * Delete video
  */
 async function deleteStream(videoId) {
-  const response = await fetch(
-    `/api/cloudflare/delete?id=${encodeURIComponent(videoId)}`,
-    { method: 'DELETE' }
-  );
-
-  const data = await response.json();
-
-  if (!response.ok || !data.success) {
-    throw new Error(data.errors?.[0]?.message || 'Failed to delete video');
-  }
-
+  const res = await fetch(`/api/cloudflare/delete?id=${encodeURIComponent(videoId)}`, {
+    method: 'DELETE'
+  });
+  const data = await res.json();
+  if (!res.ok || !data.success) throw new Error(data.errors?.[0]?.message);
   return true;
 }
 
@@ -101,54 +79,35 @@ async function deleteStream(videoId) {
  * Wait for processing
  */
 async function waitForProcessing(videoId, onProgress = null, maxAttempts = 60) {
-  let attempts = 0;
-
-  async function poll() {
-    attempts++;
-    if (attempts > maxAttempts) {
-      throw new Error('Video processing timeout');
-    }
-
+  let tries = 0;
+  while (tries++ < maxAttempts) {
     const status = await getStreamStatus(videoId);
     if (onProgress) onProgress(status);
-
     if (status.readyToStream) return status;
     if (status.status?.state === 'error') {
       throw new Error(status.status.errorReasonText || 'Processing failed');
     }
-
-    await new Promise((r) => setTimeout(r, 5000));
-    return poll();
+    await new Promise(r => setTimeout(r, 5000));
   }
-
-  return poll();
+  throw new Error('Processing timeout');
 }
 
 /**
- * Public thumbnail URL
+ * Public helpers
  */
 function getThumbnailUrl(videoId, time = null, width = 640, height = 360) {
   let url = `https://videodelivery.net/${videoId}/thumbnails/thumbnail.jpg`;
-  const params = [];
-
-  if (time !== null) params.push(`time=${time}s`);
-  if (width) params.push(`width=${width}`);
-  if (height) params.push(`height=${height}`);
-
-  if (params.length) url += '?' + params.join('&');
-  return url;
+  const q = [];
+  if (time !== null) q.push(`time=${time}s`);
+  if (width) q.push(`width=${width}`);
+  if (height) q.push(`height=${height}`);
+  return q.length ? `${url}?${q.join('&')}` : url;
 }
 
-/**
- * HLS URL
- */
 function getHLSUrl(videoId) {
   return `https://videodelivery.net/${videoId}/manifest/video.m3u8`;
 }
 
-/**
- * DASH URL
- */
 function getDASHUrl(videoId) {
   return `https://videodelivery.net/${videoId}/manifest/video.mpd`;
 }
@@ -157,47 +116,31 @@ function getDASHUrl(videoId) {
  * Update metadata
  */
 async function updateStreamMetadata(videoId, metadata) {
-  const response = await fetch('/api/cloudflare/update', {
+  const res = await fetch('/api/cloudflare/update', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ videoId, metadata })
   });
-
-  const data = await response.json();
-
-  if (!response.ok || !data.success) {
-    throw new Error(data.errors?.[0]?.message || 'Failed to update metadata');
-  }
-
+  const data = await res.json();
+  if (!res.ok || !data.success) throw new Error(data.errors?.[0]?.message);
   return data.result;
 }
 
 /**
- * Upload from remote URL
+ * Upload from URL
  */
 async function uploadFromURL(url, metadata = {}) {
-  if (!CLOUDFLARE_CONFIG.accountId || CLOUDFLARE_CONFIG.accountId === 'YOUR_ACCOUNT_ID') {
-    throw new Error('Cloudflare Account ID not configured');
-  }
-
-  const response = await fetch('/api/cloudflare/upload-url', {
+  const res = await fetch('/api/cloudflare/upload-url', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ url, metadata })
   });
-
-  const data = await response.json();
-
-  if (!response.ok || !data.success) {
-    throw new Error(data.errors?.[0]?.message || 'Upload from URL failed');
-  }
-
+  const data = await res.json();
+  if (!res.ok || !data.success) throw new Error(data.errors?.[0]?.message);
   return data.result;
 }
 
-/* ===============================
-   EXPOSE FUNCTIONS GLOBALLY
-   =============================== */
+/* expose globally */
 window.uploadToCloudflareStream = uploadToCloudflareStream;
 window.getStreamStatus = getStreamStatus;
 window.deleteStream = deleteStream;
@@ -207,4 +150,3 @@ window.getHLSUrl = getHLSUrl;
 window.getDASHUrl = getDASHUrl;
 window.updateStreamMetadata = updateStreamMetadata;
 window.uploadFromURL = uploadFromURL;
-
