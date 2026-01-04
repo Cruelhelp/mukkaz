@@ -16,16 +16,20 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Use the environment variable if available; otherwise fall back to a known account ID.
+    const accountId = process.env.CF_ACCOUNT_ID || '13faa7514f6b0dfd763ca79c8a3cc3f4';
+    const streamToken = process.env.CF_STREAM_TOKEN;
+    if (!streamToken) {
+      return res.status(500).json({ success: false, errors: [{ message: 'Cloudflare Stream token not configured (CF_STREAM_TOKEN)' }] });
+    }
     const cfResponse = await fetch(
-      `https://api.cloudflare.com/client/v4/accounts/${process.env.CF_ACCOUNT_ID}/stream`,
+      `https://api.cloudflare.com/client/v4/accounts/${accountId}/stream`,
       {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${process.env.CF_STREAM_TOKEN}`
+          Authorization: `Bearer ${streamToken}`
           // ❌ DO NOT set Content-Type manually
         },
-        // When passing a streaming body, Node.js requires the duplex option.
-        // See https://nodejs.org/api/globals.html#fetch for details.
         duplex: 'half',
         body: req
       }
