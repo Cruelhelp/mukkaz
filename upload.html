@@ -206,6 +206,8 @@
           </div>
 
           <!-- File Upload Area -->
+          <!-- Wrap all of the upload fields and the submit button in a form so the submit event can fire -->
+          <form id="uploadForm">
           <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
             <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Select Video File</h3>
             <div class="file-upload-area" id="videoUploadArea" style="min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(204,0,0,0.05) 0%, rgba(0,0,0,0.1) 100%); border: 2px dashed rgba(255,255,255,0.2); border-radius: 8px;">
@@ -369,6 +371,7 @@
             </button>
             <p class="secondary" style="margin-top: 0.5rem; font-size: 0.85rem;">Select a video file to continue</p>
           </div>
+          </form>
 
           <!-- Quick Actions -->
           <div class="history-actions" style="margin-top: 1rem;">
