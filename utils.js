@@ -64,23 +64,139 @@ function formatDuration(seconds) {
   }
 }
 
-function showNotification(message, type = 'info') {
+async function showNotification(message, type = 'info', persistent = false) {
+  // For persistent notifications (important activities), create in database
+  if (persistent && typeof createNotification === 'function') {
+    try {
+      const currentUser = await getCurrentUser();
+      if (currentUser) {
+        await createNotification(
+          currentUser.id,
+          type,
+          type === 'success' ? 'Success' : type === 'error' ? 'Error' : 'Info',
+          message,
+          null,
+          currentUser.id
+        );
+        // Update notification badge
+        if (typeof updateNotificationBadge === 'function') {
+          updateNotificationBadge();
+        }
+        return;
+      }
+    } catch (error) {
+      console.error('Error creating notification:', error);
+    }
+  }
+
+  // For non-persistent notifications, show in notification dropdown temporarily
+  const bellBtn = document.getElementById('notificationBellBtn');
+  if (bellBtn && typeof showNotificationDropdown === 'function') {
+    // Add temporary notification to dropdown
+    addTemporaryNotification(message, type);
+
+    // Flash the notification bell
+    bellBtn.style.animation = 'pulse 0.5s ease';
+    setTimeout(() => {
+      bellBtn.style.animation = '';
+    }, 500);
+    return; // Don't show toast if dropdown shown
+  }
+
+  // Fallback to toast if notification system not available
+  // Get or create toast container
+  let container = document.getElementById('toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toast-container';
+    container.style.cssText = 'position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); z-index: 2000; display: flex; flex-direction: column; gap: 0.5rem; pointer-events: none; max-width: 90vw;';
+    document.body.appendChild(container);
+  }
+
   const notification = document.createElement('div');
   notification.className = `notification notification-${type}`;
   notification.textContent = message;
+  notification.style.cssText = 'pointer-events: auto; margin: 0 auto; transform: translateY(100px); opacity: 0;';
 
-  document.body.appendChild(notification);
+  container.appendChild(notification);
 
+  // Animate in
   setTimeout(() => {
-    notification.classList.add('show');
+    notification.style.transform = 'translateY(0)';
+    notification.style.opacity = '1';
+    notification.style.transition = 'all 0.3s ease';
   }, 10);
 
+  // Remove after 3 seconds
   setTimeout(() => {
-    notification.classList.remove('show');
+    notification.style.transform = 'translateY(100px)';
+    notification.style.opacity = '0';
     setTimeout(() => {
-      document.body.removeChild(notification);
+      if (container.contains(notification)) {
+        container.removeChild(notification);
+      }
+      // Remove container if empty
+      if (container.children.length === 0 && document.body.contains(container)) {
+        document.body.removeChild(container);
+      }
     }, 300);
   }, 3000);
+}
+
+function addTemporaryNotification(message, type) {
+  // Check if dropdown exists
+  let dropdown = document.getElementById('notificationsDropdown');
+
+  if (!dropdown) {
+    // Create dropdown if it doesn't exist
+    dropdown = document.createElement('div');
+    dropdown.className = 'notifications-dropdown';
+    dropdown.id = 'notificationsDropdown';
+    dropdown.style.display = 'none';
+    document.body.appendChild(dropdown);
+  }
+
+  // Get or create notifications list
+  let list = dropdown.querySelector('.notifications-list');
+  if (!list) {
+    dropdown.innerHTML = `
+      <div class="notifications-header">
+        <h3>Notifications</h3>
+      </div>
+      <div class="notifications-list"></div>
+    `;
+    list = dropdown.querySelector('.notifications-list');
+  }
+
+  // Create notification item
+  const item = document.createElement('div');
+  item.className = `notification-item notification-temp notification-temp-${type}`;
+  item.innerHTML = `
+    <div class="notification-content">
+      <div class="notification-text">${message}</div>
+      <div class="notification-time">Just now</div>
+    </div>
+  `;
+
+  // Add to top of list
+  list.insertBefore(item, list.firstChild);
+
+  // Show dropdown briefly
+  dropdown.style.display = 'block';
+
+  // Remove after 5 seconds
+  setTimeout(() => {
+    item.style.opacity = '0';
+    setTimeout(() => {
+      if (list.contains(item)) {
+        list.removeChild(item);
+      }
+      // Hide dropdown if no notifications
+      if (list.children.length === 0) {
+        dropdown.style.display = 'none';
+      }
+    }, 300);
+  }, 5000);
 }
 
 function getQueryParam(param) {
@@ -180,4 +296,28 @@ function getCurrentUserFromStorage() {
 
 function clearCurrentUser() {
   removeFromLocalStorage('mukkaz_user');
+}
+
+// Password visibility toggle
+function togglePasswordVisibility(inputId, button) {
+  const input = document.getElementById(inputId);
+  const icon = button.querySelector('span');
+
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.innerHTML = getIcon('eyeOff');
+    button.title = 'Hide password';
+  } else {
+    input.type = 'password';
+    icon.innerHTML = getIcon('eye');
+    button.title = 'Show password';
+  }
+}
+
+// HTML escaping for security
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }

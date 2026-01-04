@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://pl28394065.effectivegatecpm.com https://pl28394078.effectivegatecpm.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https: https://videodelivery.net https://cloudflarestream.com; connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net https://api.cloudflare.com https://videodelivery.net https://embed.cloudflarestream.com; frame-src 'self' https://embed.cloudflarestream.com https://iframe.videodelivery.net; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://pl28394065.effectivegatecpm.com https://pl28394078.effectivegatecpm.com https://va.vercel-scripts.com https://cdn.growthbook.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https: https://videodelivery.net https://cloudflarestream.com; connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net https://api.cloudflare.com https://videodelivery.net https://embed.cloudflarestream.com https://vitals.vercel-insights.com https://cdn.growthbook.io; frame-src 'self' https://embed.cloudflarestream.com https://iframe.videodelivery.net; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
   <title>My Videos - Mukkaz</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <script src="config.local.js" onerror="console.warn('config.local.js not found - using defaults')"></script>
@@ -13,6 +13,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <script src="age-gate.js"></script>
   <script src="components.js"></script>
+  <script src="analytics.js"></script>
+  <script src="growthbook.js"></script>
 </head>
 <body>
   <!-- Navigation Bar -->
@@ -86,11 +88,89 @@
 
   <!-- Main Content -->
   <main class="main-content">
-    <div class="profile-container">
-      <h2 class="page-title">My Videos</h2>
+    <div class="history-page-container">
+      <!-- Header -->
+      <div class="history-header">
+        <h1>My Videos</h1>
+      </div>
 
-      <div class="video-grid" id="userVideos">
-        <!-- Videos loaded by JavaScript -->
+      <!-- Two Column Layout -->
+      <div class="history-layout">
+        <!-- Main Video List -->
+        <div class="history-main">
+          <!-- Filter Chips -->
+          <div class="history-filters">
+            <button class="category-btn active" data-filter="all">All</button>
+            <button class="category-btn" data-filter="public">Public</button>
+            <button class="category-btn" data-filter="private">Private</button>
+          </div>
+
+          <!-- Video Items -->
+          <div id="videosList">
+            <!-- Loading skeleton -->
+            <div class="history-skeleton" id="videosSkeleton">
+              <div class="history-item-skeleton">
+                <div class="skeleton-thumb-horizontal"></div>
+                <div class="skeleton-info-horizontal">
+                  <div class="skeleton-title-horizontal"></div>
+                  <div class="skeleton-text-horizontal"></div>
+                </div>
+              </div>
+              <div class="history-item-skeleton">
+                <div class="skeleton-thumb-horizontal"></div>
+                <div class="skeleton-info-horizontal">
+                  <div class="skeleton-title-horizontal"></div>
+                  <div class="skeleton-text-horizontal"></div>
+                </div>
+              </div>
+              <div class="history-item-skeleton">
+                <div class="skeleton-thumb-horizontal"></div>
+                <div class="skeleton-info-horizontal">
+                  <div class="skeleton-title-horizontal"></div>
+                  <div class="skeleton-text-horizontal"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar Actions -->
+        <div class="history-sidebar">
+          <!-- Search Videos -->
+          <div class="history-search-box">
+            <span id="videoSearchIcon"></span>
+            <input
+              type="text"
+              id="videoSearchInput"
+              placeholder="Search my videos"
+              class="history-search-input"
+            >
+          </div>
+
+          <!-- Quick Stats -->
+          <div class="history-info" style="margin-bottom: 1rem;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+              <span>Total Videos:</span>
+              <strong id="totalVideos">0</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+              <span>Total Views:</span>
+              <strong id="totalViews">0</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span>Total Likes:</span>
+              <strong id="totalLikes">0</strong>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="history-actions">
+            <a href="upload.html" class="history-action-btn">
+              <span id="uploadIcon"></span>
+              <span>Upload New Video</span>
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   </main>
@@ -221,199 +301,208 @@
   <script>
     let currentUser = null;
     let currentProfile = null;
+    let allMyVideos = [];
+    let currentFilter = 'all';
 
     document.addEventListener('DOMContentLoaded', async () => {
       await initializeApp();
+
+      // Load icons
+      document.getElementById('videoSearchIcon').innerHTML = getIcon('search');
+      document.getElementById('uploadIcon').innerHTML = getIcon('upload');
+
       await loadMyVideos();
+      setupEventListeners();
     });
 
     async function loadMyVideos() {
       currentUser = await getCurrentUser();
+      const videosList = document.getElementById('videosList');
+      const skeleton = document.getElementById('videosSkeleton');
 
       if (!currentUser) {
-        const container = document.querySelector('.profile-container');
-        container.innerHTML = `
-          <div style="text-align: center; padding: 4rem 2rem; background-color: var(--bg-secondary); border-radius: 12px;">
-            <div style="font-size: 4rem; margin-bottom: 1rem;">${getIcon('user')}</div>
-            <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">Sign In to View Your Videos</h3>
-            <p class="secondary" style="margin-bottom: 2rem; font-size: 1.1rem;">
-              Create an account to upload and manage your videos
-            </p>
-            <button class="btn-primary" onclick="openModal()" style="font-size: 1.1rem; padding: 1rem 3rem;">
-              Sign In / Sign Up
-            </button>
-          </div>
-        `;
+        window.location.href = 'index.html';
         return;
       }
 
       try {
         currentProfile = await getProfile(currentUser.id);
-        await loadUserVideos();
-      } catch (error) {
-        console.error('Error loading videos:', error);
-        showNotification('Error loading videos', 'error');
-      }
-    }
-
-    async function loadUserVideos() {
-      const userVideos = document.getElementById('userVideos');
-
-      // Show skeleton loaders while loading
-      showSkeletonGrid(userVideos, 8);
-
-      try {
         const allVideos = await getVideos();
-        const myVideos = allVideos.filter(v => v.user_id === currentUser.id);
+        allMyVideos = allVideos.filter(v => v.user_id === currentUser.id);
 
-        if (myVideos.length === 0) {
-          userVideos.innerHTML = `
-            <div class="empty-state-container">
-              <div class="empty-state-content">
-                <h3 style="font-size: 1.5rem; margin-bottom: 1rem; color: #fff;">No Videos Yet</h3>
-                <p class="secondary" style="margin-bottom: 2rem; font-size: 1rem;">You haven't uploaded any videos yet.</p>
-                <a href="upload.html" class="btn-primary">
-                  Upload Your First Video
-                </a>
-              </div>
+        skeleton.style.display = 'none';
+
+        if (allMyVideos.length === 0) {
+          videosList.innerHTML = `
+            <div style="text-align: center; padding: 4rem 2rem; color: var(--text-secondary);">
+              <p style="font-size: 18px; margin-bottom: 8px;">No Videos Yet</p>
+              <p style="font-size: 14px;">You haven't uploaded any videos yet</p>
             </div>
           `;
           return;
         }
 
-        // Clear skeleton loaders
-        userVideos.innerHTML = '';
-        myVideos.forEach(video => {
-          userVideos.appendChild(createVideoCard(video));
-        });
+        updateStats(allMyVideos);
+        displayVideos(allMyVideos);
       } catch (error) {
         console.error('Error loading videos:', error);
-        userVideos.innerHTML = '<p class="secondary">Error loading videos</p>';
+        skeleton.style.display = 'none';
+        videosList.innerHTML = '<p class="secondary" style="padding: 2rem; text-align: center;">Error loading videos</p>';
       }
     }
 
-    function createVideoCard(video) {
-      const profile = video.profiles || currentProfile;
-      const username = profile.username || 'Unknown';
-      const avatarUrl = profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`;
-      const thumbnailUrl = video.thumbnail_url || 'https://via.placeholder.com/320x180?text=No+Thumbnail';
+    function displayVideos(videos) {
+      const videosList = document.getElementById('videosList');
 
-      const card = document.createElement('div');
-      card.className = 'video-card';
-      card.style.position = 'relative';
-
-      card.innerHTML = `
-        <a href="watch.html?v=${video.id}" style="display: block; text-decoration: none; color: inherit; width: 100%;">
-          <div class="video-thumbnail-container">
-            <img
-              src="${thumbnailUrl}"
-              alt="${video.title}"
-              class="video-thumbnail"
-              loading="lazy"
-            >
+      if (videos.length === 0) {
+        videosList.innerHTML = `
+          <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+            <p>No videos found</p>
           </div>
-          <div class="video-info">
-            <div class="video-avatar"><img src="${avatarUrl}" alt="${username}" class="avatar"></div>
-            <div class="video-details">
-              <h3 class="video-title">${video.title}</h3>
-              <div class="video-meta">
-                <div class="secondary">
-                  <span>${formatNumber(video.views_count || 0)} views</span>
+        `;
+        return;
+      }
+
+      // Group by date
+      const grouped = groupByDate(videos);
+
+      let html = '';
+      for (const [date, items] of Object.entries(grouped)) {
+        html += `<div class="history-date-section">
+          <div class="history-date-header">${date}</div>`;
+
+        items.forEach(video => {
+          const profile = video.profiles || currentProfile;
+          const thumbnailUrl = video.thumbnail_url || 'https://via.placeholder.com/280x158?text=No+Thumbnail';
+
+          html += `
+            <div class="history-item" data-video-id="${video.id}">
+              <a href="watch.html?v=${video.id}" class="history-thumbnail">
+                <img src="${thumbnailUrl}" alt="${escapeHtml(video.title)}">
+                ${video.duration ? `<div class="video-duration">${video.duration}</div>` : ''}
+              </a>
+              <div class="history-info">
+                <a href="watch.html?v=${video.id}" class="history-title">${escapeHtml(video.title)}</a>
+                <div class="history-meta">
+                  <span class="history-views">${formatNumber(video.views_count || 0)} views</span>
                   <span>•</span>
-                  <span>${timeSince(video.created_at)} ago</span>
+                  <span class="history-views">${formatNumber(video.likes_count || 0)} likes</span>
+                  <span>•</span>
+                  <span class="history-date">${timeSince(new Date(video.created_at))} ago</span>
                 </div>
-                ${video.tags ? `<div class="secondary">
-                  ${video.tags.split(',').slice(0, 2).map(tag => `<span style="background: rgba(255,255,255,0.08); padding: 1px 6px; border-radius: 3px; font-size: 11px; margin-right: 4px;">${tag.trim()}</span>`).join('')}
-                </div>` : ''}
+                ${video.description ? `<div class="history-description">${escapeHtml(video.description.substring(0, 100))}...</div>` : ''}
+              </div>
+              <div class="video-item-actions">
+                <button class="history-action-icon" onclick="editVideo('${video.id}')" title="Edit">
+                  ${getIcon('edit')}
+                </button>
+                <button class="history-action-icon" onclick="shareVideo('${video.id}')" title="Share">
+                  ${getIcon('share')}
+                </button>
+                <button class="history-action-icon danger" onclick="confirmDeleteVideo('${video.id}')" title="Delete">
+                  ${getIcon('delete')}
+                </button>
               </div>
             </div>
-          </div>
-        </a>
-      `;
+          `;
+        });
 
-      // Create quick share button
-      const shareBtn = document.createElement('button');
-      shareBtn.className = 'video-share-btn';
-      shareBtn.innerHTML = getIcon('share');
-      shareBtn.title = 'Copy link';
-      shareBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        shareVideo(video.id);
-      });
+        html += '</div>';
+      }
 
-      // Create 3-dot menu button
-      const menuBtn = document.createElement('button');
-      menuBtn.className = 'video-menu-btn';
-      menuBtn.innerHTML = '⋮';
-      menuBtn.title = 'More options';
-      menuBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleVideoMenu(card, video);
-      });
-
-      card.appendChild(shareBtn);
-      card.appendChild(menuBtn);
-
-      return card;
+      videosList.innerHTML = html;
     }
 
-    function toggleVideoMenu(card, video) {
-      // Remove any existing menus
-      document.querySelectorAll('.video-menu-dropdown').forEach(m => m.remove());
+    function groupByDate(videos) {
+      const groups = {};
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
 
-      const menu = document.createElement('div');
-      menu.className = 'video-menu-dropdown show';
+      videos.forEach(video => {
+        const videoDate = new Date(video.created_at);
+        const videoDay = new Date(videoDate.getFullYear(), videoDate.getMonth(), videoDate.getDate());
 
-      // Create menu items
-      const editItem = document.createElement('div');
-      editItem.className = 'video-menu-item';
-      editItem.innerHTML = `${getIcon('edit')} Edit`;
-      editItem.addEventListener('click', (e) => {
-        e.stopPropagation();
-        window.location.href = `video-editor.html?v=${video.id}`;
-        menu.remove();
+        let label;
+        if (videoDay.getTime() === today.getTime()) {
+          label = 'Today';
+        } else if (videoDay.getTime() === yesterday.getTime()) {
+          label = 'Yesterday';
+        } else {
+          label = videoDay.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        }
+
+        if (!groups[label]) groups[label] = [];
+        groups[label].push(video);
       });
 
-      const deleteItem = document.createElement('div');
-      deleteItem.className = 'video-menu-item danger';
-      deleteItem.innerHTML = `${getIcon('delete')} Delete`;
-      deleteItem.addEventListener('click', (e) => {
-        e.stopPropagation();
-        confirmDeleteVideo(video.id);
-        menu.remove();
-      });
+      return groups;
+    }
 
-      menu.appendChild(editItem);
-      menu.appendChild(deleteItem);
-      card.appendChild(menu);
+    function updateStats(videos) {
+      const totalVideos = videos.length;
+      const totalViews = videos.reduce((sum, v) => sum + (v.views_count || 0), 0);
+      const totalLikes = videos.reduce((sum, v) => sum + (v.likes_count || 0), 0);
 
-      // Close menu when clicking outside
-      setTimeout(() => {
-        document.addEventListener('click', function closeMenu(e) {
-          if (!menu.contains(e.target)) {
-            menu.remove();
-            document.removeEventListener('click', closeMenu);
+      document.getElementById('totalVideos').textContent = formatNumber(totalVideos);
+      document.getElementById('totalViews').textContent = formatNumber(totalViews);
+      document.getElementById('totalLikes').textContent = formatNumber(totalLikes);
+    }
+
+    function setupEventListeners() {
+      // Filter buttons
+      document.querySelectorAll('.history-filters .category-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.history-filters .category-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentFilter = btn.dataset.filter;
+
+          let filtered = allMyVideos;
+          if (currentFilter === 'public') {
+            filtered = allMyVideos.filter(v => !v.is_private);
+          } else if (currentFilter === 'private') {
+            filtered = allMyVideos.filter(v => v.is_private);
           }
+
+          displayVideos(filtered);
         });
-      }, 10);
+      });
+
+      // Search
+      const searchInput = document.getElementById('videoSearchInput');
+      searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        if (query) {
+          const filtered = allMyVideos.filter(v =>
+            v.title.toLowerCase().includes(query) ||
+            (v.description && v.description.toLowerCase().includes(query)) ||
+            (v.tags && v.tags.toLowerCase().includes(query))
+          );
+          displayVideos(filtered);
+        } else {
+          displayVideos(allMyVideos);
+        }
+      });
+    }
+
+    function editVideo(videoId) {
+      window.location.href = `video-editor.html?v=${videoId}`;
     }
 
     async function shareVideo(videoId) {
       const url = `${window.location.origin}/watch.html?v=${videoId}`;
       try {
         await navigator.clipboard.writeText(url);
-        showNotification('Link copied to clipboard! 🔗', 'success');
+        showNotification('Link copied to clipboard', 'success');
       } catch (error) {
-        // Fallback for browsers that don't support clipboard API
         const tempInput = document.createElement('input');
         tempInput.value = url;
         document.body.appendChild(tempInput);
         tempInput.select();
         document.execCommand('copy');
         document.body.removeChild(tempInput);
-        showNotification('Link copied to clipboard! 🔗', 'success');
+        showNotification('Link copied to clipboard', 'success');
       }
     }
 
@@ -468,12 +557,21 @@
         if (error) throw error;
 
         showNotification('Video deleted successfully', 'success');
-        await loadUserVideos();
+
+        // Remove from local array and refresh display
+        allMyVideos = allMyVideos.filter(v => v.id !== videoId);
+        displayVideos(allMyVideos);
+        updateStats(allMyVideos);
       } catch (error) {
         console.error('Error deleting video:', error);
         showNotification('Error deleting video: ' + error.message, 'error');
       }
     }
+
+    // Global functions
+    window.editVideo = editVideo;
+    window.shareVideo = shareVideo;
+    window.confirmDeleteVideo = confirmDeleteVideo;
 
     // Edit video modal
     let editingVideoId = null;
@@ -545,9 +643,6 @@
     document.getElementById('closeEditIcon').innerHTML = getIcon('close');
   </script>
 
-  <!-- Adsterra Scripts -->
-  <script async="async" data-cfasync="false" src="https://pl28394065.effectivegatecpm.com/ce630968429585fc33b1cd2e0f35d06a/invoke.js"></script>
-  <div id="container-ce630968429585fc33b1cd2e0f35d06a"></div>
-  <script src="https://pl28394078.effectivegatecpm.com/30/7d/66/307d667458334a8e0ab5a0293231b8b3.js"></script>
+  <!-- Ads removed -->
 </body>
 </html>

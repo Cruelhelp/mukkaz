@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://vjs.zencdn.net https://cdn.quilljs.com https://pl28394065.effectivegatecpm.com https://pl28394078.effectivegatecpm.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://vjs.zencdn.net https://unpkg.com https://cdn.quilljs.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https: https://videodelivery.net; connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net https://unpkg.com https://api.cloudflare.com https://videodelivery.net https://embed.cloudflarestream.com; frame-src 'self' https://embed.cloudflarestream.com https://iframe.videodelivery.net; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://vjs.zencdn.net https://cdn.quilljs.com https://pl28394065.effectivegatecpm.com https://pl28394078.effectivegatecpm.com https://va.vercel-scripts.com https://cdn.growthbook.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://vjs.zencdn.net https://unpkg.com https://cdn.quilljs.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https: https://videodelivery.net; connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net https://unpkg.com https://api.cloudflare.com https://videodelivery.net https://embed.cloudflarestream.com https://vitals.vercel-insights.com https://cdn.growthbook.io; frame-src 'self' https://embed.cloudflarestream.com https://iframe.videodelivery.net; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
   <title>Upload Video - Mukkaz</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <script src="config.local.js" onerror="console.warn('config.local.js not found - using defaults')"></script>
@@ -15,6 +15,43 @@
   <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
   <script src="age-gate.js"></script>
   <script src="components.js"></script>
+  <script src="analytics.js"></script>
+  <script src="growthbook.js"></script>
+  <style>
+    /* Desktop-specific upload layout */
+    @media (min-width: 1024px) {
+      .desktop-only {
+        display: block !important;
+      }
+
+      .mobile-only {
+        display: none !important;
+      }
+
+      /* Hide mobile thumbnail and video preview sections on desktop */
+      #thumbnailSection,
+      #videoPreviewSection {
+        display: none !important;
+      }
+    }
+
+    /* Mobile layout */
+    @media (max-width: 1023px) {
+      .desktop-only {
+        display: none !important;
+      }
+
+      .mobile-only {
+        display: block !important;
+      }
+
+      /* Show mobile sections, hide desktop sections */
+      #thumbnailSectionDesktop,
+      #videoPreviewSectionDesktop {
+        display: none !important;
+      }
+    }
+  </style>
 </head>
 <body>
   <!-- Navigation Bar -->
@@ -79,27 +116,128 @@
 
   <!-- Main Content -->
   <main class="main-content">
-    <div class="upload-container">
-      <h2 class="page-title">Upload Video</h2>
+    <div class="history-page-container">
+      <!-- Upload Tabs -->
+      <div class="history-filters" style="margin-bottom: 1rem;">
+        <button class="category-btn active" data-tab="upload" type="button">Upload Video</button>
+        <button class="category-btn" data-tab="drafts" type="button">Drafts</button>
+      </div>
 
-      <form id="uploadForm" class="simple-upload-form">
-        <!-- LEFT COLUMN: Video Preview -->
-        <div class="upload-left-column">
-          <div class="form-section">
-            <h3>Video Preview</h3>
-            <div class="file-upload-area" id="videoUploadArea" style="min-height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(204,0,0,0.05) 0%, rgba(0,0,0,0.1) 100%); border: 2px dashed rgba(255,255,255,0.2);">
-              <div id="videoUploadIcon" style="font-size: 4rem; color: var(--text-secondary); margin-bottom: 1rem;"></div>
-              <p style="font-size: 1.2rem; margin: 0.5rem 0; font-weight: 500;">Drag & Drop Your Video Here</p>
-              <p class="secondary" style="margin-bottom: 1.5rem;">or click to browse</p>
-              <button type="button" class="btn-secondary" onclick="document.getElementById('videoFile').click()" style="padding: 0.75rem 2rem;">
-                Select File
-              </button>
-              <p class="secondary" style="margin-top: 1rem; font-size: 0.85rem;">Any size accepted • Auto-compressed for web</p>
-              <input type="file" id="videoFile" class="file-input" accept="video/*" required>
+      <!-- Header -->
+      <div class="history-header">
+        <h1>Upload Video</h1>
+      </div>
+
+      <!-- Two Column Layout -->
+      <div class="history-layout">
+        <!-- Left: Drafts List (hidden by default) -->
+        <div class="history-main" id="draftsContainer" style="display: none;">
+          <div class="form-section" style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 8px;">
+            <h3 style="margin-bottom: 1rem;">Your Drafts</h3>
+            <div id="draftsList">
+              <!-- Drafts will be loaded here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Left: Thumbnails & Preview for desktop -->
+        <div class="history-main upload-preview-col" id="uploadContainer">
+          <div id="desktopPreviewArea">
+            <!-- Thumbnails (desktop) -->
+            <div id="thumbnailSectionDesktop" class="form-section desktop-only" style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; display: none;">
+              <h3 style="margin-bottom: 1rem;">Select Thumbnail</h3>
+              <div class="thumbnails-grid" id="thumbnailsGridDesktop">
+                <!-- Auto-generated thumbnails -->
+              </div>
+              <div style="margin-top: 1rem;">
+                <label class="btn-secondary" for="customThumbnailInputDesktop" style="cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                  <span id="thumbnailUploadIconDesktop"></span> Upload Custom Thumbnail
+                </label>
+                <input type="file" id="customThumbnailInputDesktop" class="file-input" accept="image/*" style="display: none;">
+              </div>
             </div>
 
-            <!-- Video Preview (shown after upload) -->
-            <div id="videoPreviewSection" class="hidden" style="margin-top: 1.5rem;">
+            <!-- Video Preview (desktop) -->
+            <div class="form-section desktop-only" id="videoPreviewSectionDesktop" style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 8px; display: none;">
+              <h3 style="margin-bottom: 1rem;">Video Preview</h3>
+              <div id="videoPreviewContainerDesktop" class="hidden" style="margin-top: 1rem;">
+                <div class="video-preview-container">
+                  <video id="videoPreviewDesktop" controls style="width: 100%; border-radius: 8px;"></video>
+                </div>
+
+                <!-- Video Info -->
+                <div class="info-grid" style="margin-top: 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+                  <div class="info-item">
+                    <span class="info-label">Duration:</span>
+                    <span id="videoDurationDesktop">-</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Resolution:</span>
+                    <span id="videoResolutionDesktop">-</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Quality:</span>
+                    <span id="detectedQualityDesktop" style="color: var(--accent-red); font-weight: 700;">-</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Original Size:</span>
+                    <span id="originalSizeDesktop">-</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Final Size:</span>
+                    <span id="finalSizeDesktop" style="color: var(--accent-red); font-weight: 700;">-</span>
+                  </div>
+                </div>
+
+                <!-- Compression Status -->
+                <div id="compressionStatusDesktop" class="alert alert-info hidden" style="margin-top: 1rem;">
+                  <strong>Auto-compressing...</strong> Optimizing your video for web playback
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Upload Controls Sidebar -->
+        <div class="history-sidebar" style="max-width: 420px;" id="uploadSidebar">
+          <!-- Info -->
+          <div class="history-info" style="margin-bottom: 1rem;">
+            Videos are automatically optimized for web playback. All formats supported, unlimited file size.
+          </div>
+
+          <!-- File Upload Area -->
+          <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+            <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Select Video File</h3>
+            <div class="file-upload-area" id="videoUploadArea" style="min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(204,0,0,0.05) 0%, rgba(0,0,0,0.1) 100%); border: 2px dashed rgba(255,255,255,0.2); border-radius: 8px;">
+              <div id="videoUploadIcon" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 0.75rem;"></div>
+              <p style="font-size: 1rem; margin: 0.5rem 0; font-weight: 500;">Drag & Drop Your Video Here</p>
+              <p class="secondary" style="margin-bottom: 1rem; font-size: 0.85rem;">or click to browse</p>
+              <button type="button" class="btn-secondary" onclick="event.stopPropagation(); document.getElementById('videoFile').click();" style="padding: 0.625rem 1.5rem; font-size: 0.9rem;">
+                Select File
+              </button>
+              <p class="secondary" style="margin-top: 0.75rem; font-size: 0.8rem;">Any size • Auto-compressed</p>
+              <input type="file" id="videoFile" class="file-input" accept="video/*" required>
+            </div>
+          </div>
+
+          <!-- Thumbnails -->
+          <div id="thumbnailSection" class="form-section" style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+            <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Select Thumbnail</h3>
+            <div class="thumbnails-grid" id="thumbnailsGrid">
+              <!-- Auto-generated thumbnails -->
+            </div>
+            <div style="margin-top: 1rem;">
+              <label class="btn-secondary" for="customThumbnailInput" style="cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                <span id="thumbnailUploadIcon"></span> Upload Custom Thumbnail
+              </label>
+              <input type="file" id="customThumbnailInput" class="file-input" accept="image/*">
+            </div>
+          </div>
+
+          <!-- Video Preview -->
+          <div class="form-section" style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+            <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Video Preview</h3>
+            <div id="videoPreviewSection" class="hidden" style="margin-top: 1rem;">
               <div class="video-preview-container">
                 <video id="videoPreview" controls></video>
               </div>
@@ -134,27 +272,10 @@
               </div>
             </div>
           </div>
-        </div>
-
-        <!-- RIGHT COLUMN: Controls and Fields -->
-        <div class="upload-right-column">
-          <!-- Thumbnails -->
-          <div id="thumbnailSection" class="form-section">
-            <h3>Select Thumbnail</h3>
-            <div class="thumbnails-grid" id="thumbnailsGrid">
-              <!-- Auto-generated thumbnails -->
-            </div>
-            <div style="margin-top: 1rem;">
-              <label class="btn-secondary" for="customThumbnailInput" style="cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
-                <span id="thumbnailUploadIcon"></span> Upload Custom Thumbnail
-              </label>
-              <input type="file" id="customThumbnailInput" class="file-input" accept="image/*">
-            </div>
-          </div>
 
           <!-- Video Details -->
-          <div id="detailsSection" class="form-section">
-            <h3>Video Details</h3>
+          <div id="detailsSection" class="form-section" style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+            <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Video Details</h3>
 
             <div class="form-group">
               <label class="form-label">Title *</label>
@@ -205,10 +326,32 @@
               </div>
               <p class="secondary" style="font-size: 12px; margin-top: 6px;">Custom tags help viewers find your content. Separate words with spaces.</p>
             </div>
+
+            <div class="form-group">
+              <label class="form-label">Visibility</label>
+              <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                <label class="visibility-option" style="flex: 1; cursor: pointer;">
+                  <input type="radio" name="visibility" value="public" checked style="display: none;">
+                  <div class="visibility-card active" id="publicOption" style="background: var(--bg-primary); padding: 1rem; border-radius: 6px; border: 2px solid var(--accent-red); text-align: center; transition: all 0.2s;">
+                    <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🌍</div>
+                    <div style="font-weight: 600; margin-bottom: 0.25rem;">Public</div>
+                    <p class="secondary" style="font-size: 0.75rem; margin: 0;">Everyone can watch</p>
+                  </div>
+                </label>
+                <label class="visibility-option" style="flex: 1; cursor: pointer;">
+                  <input type="radio" name="visibility" value="private" style="display: none;">
+                  <div class="visibility-card" id="privateOption" style="background: var(--bg-primary); padding: 1rem; border-radius: 6px; border: 2px solid transparent; text-align: center; transition: all 0.2s;">
+                    <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🔒</div>
+                    <div style="font-weight: 600; margin-bottom: 0.25rem;">Private</div>
+                    <p class="secondary" style="font-size: 0.75rem; margin: 0;">Only you can watch</p>
+                  </div>
+                </label>
+              </div>
+            </div>
           </div>
 
           <!-- Upload Progress -->
-          <div id="uploadProgressSection" class="upload-progress-container hidden">
+          <div id="uploadProgressSection" class="upload-progress-container hidden" style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
             <h4 id="uploadStatusText">Processing video...</h4>
             <div class="progress-bar">
               <div class="progress-fill" id="uploadProgressBar"></div>
@@ -217,14 +360,30 @@
           </div>
 
           <!-- Submit Button -->
-          <div id="submitSection" class="form-section" style="text-align: center;">
-            <button type="submit" class="btn-primary" id="uploadSubmitBtn" disabled style="padding: 1rem 4rem; font-size: 1.1rem; opacity: 0.5; cursor: not-allowed; display: inline-flex; align-items: center; gap: 10px; height: auto;">
+          <div id="submitSection" style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 8px; text-align: center;">
+            <button type="button" class="btn-secondary" onclick="saveDraft()" style="width: 100%; padding: 0.875rem; font-size: 0.9rem; margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <span id="saveIcon"></span> Save as Draft
+            </button>
+            <button type="submit" class="btn-primary" id="uploadSubmitBtn" disabled style="width: 100%; padding: 1rem; font-size: 1rem; opacity: 0.5; cursor: not-allowed; display: flex; align-items: center; justify-content: center; gap: 10px;">
               <span id="uploadIcon"></span> Upload to Mukkaz
             </button>
             <p class="secondary" style="margin-top: 0.5rem; font-size: 0.85rem;">Select a video file to continue</p>
           </div>
+
+          <!-- Quick Actions -->
+          <div class="history-actions" style="margin-top: 1rem;">
+            <a href="my-videos.html" class="history-action-btn">
+              <span id="myVideosIconSidebar"></span>
+              <span>My Videos</span>
+            </a>
+
+            <button type="button" class="history-action-btn" id="resetFormBtn" form="uploadForm">
+              <span id="resetIcon"></span>
+              <span>Reset Form</span>
+            </button>
+          </div>
         </div>
-      </form>
+      </div>
     </div>
   </main>
 
@@ -255,7 +414,8 @@
         needsCompression: false
       },
       ffmpeg: null,
-      ffmpegLoaded: false
+      ffmpegLoaded: false,
+      draftId: null
     };
 
     let quillEditor = null;
@@ -265,12 +425,272 @@
       setupRichTextEditor();
       setupUploadHandlers();
       loadUploadIcons();
+      setupUploadTabs();
+      setupResetButton();
     });
 
     function loadUploadIcons() {
       document.getElementById('videoUploadIcon').innerHTML = getIcon('video');
       document.getElementById('thumbnailUploadIcon').innerHTML = getIcon('image');
       document.getElementById('uploadIcon').innerHTML = getIcon('upload');
+      document.getElementById('saveIcon').innerHTML = getIcon('save');
+
+      // Desktop icons
+      const thumbnailUploadIconDesktop = document.getElementById('thumbnailUploadIconDesktop');
+      if (thumbnailUploadIconDesktop) thumbnailUploadIconDesktop.innerHTML = getIcon('image');
+
+      const myVideosIconSidebar = document.getElementById('myVideosIconSidebar');
+      if (myVideosIconSidebar) myVideosIconSidebar.innerHTML = getIcon('library');
+
+      const resetIcon = document.getElementById('resetIcon');
+      if (resetIcon) resetIcon.innerHTML = getIcon('close');
+    }
+
+    function setupUploadTabs() {
+      const tabs = document.querySelectorAll('.history-filters .category-btn');
+      const uploadContainer = document.getElementById('uploadContainer');
+      const uploadSidebar = document.getElementById('uploadSidebar');
+      const draftsContainer = document.getElementById('draftsContainer');
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', async () => {
+          const tabType = tab.dataset.tab;
+
+          // Update active state
+          tabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+
+          // Handle tab switching
+          if (tabType === 'drafts') {
+            // Show drafts, hide upload
+            uploadContainer.style.display = 'none';
+            uploadSidebar.style.display = 'none';
+            draftsContainer.style.display = 'block';
+            await loadDrafts();
+          } else {
+            // Show upload, hide drafts
+            uploadContainer.style.display = 'block';
+            uploadSidebar.style.display = 'block';
+            draftsContainer.style.display = 'none';
+          }
+        });
+      });
+    }
+
+    async function loadDrafts() {
+      const draftsList = document.getElementById('draftsList');
+      draftsList.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+
+      try {
+        const user = await getCurrentUser();
+        if (!user) {
+          draftsList.innerHTML = '<p class="secondary" style="text-align: center; padding: 2rem;">Please log in to view drafts</p>';
+          return;
+        }
+
+        const { data: drafts, error } = await supabaseClient
+          .from('video_drafts')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('updated_at', { ascending: false });
+
+        if (error) throw error;
+
+        if (!drafts || drafts.length === 0) {
+          draftsList.innerHTML = `
+            <div style="text-align: center; padding: 3rem 1rem;">
+              <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;">${getIcon('video')}</div>
+              <p class="secondary">No drafts yet</p>
+              <p class="secondary" style="font-size: 0.85rem; margin-top: 0.5rem;">Save a video as draft to continue editing later</p>
+            </div>
+          `;
+          return;
+        }
+
+        // Render drafts
+        draftsList.innerHTML = drafts.map(draft => `
+          <div class="draft-item" style="background: var(--bg-primary); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid rgba(255,255,255,0.1);">
+            <div style="display: flex; gap: 1rem; align-items: start;">
+              <div style="flex: 1;">
+                <h4 style="margin: 0 0 0.5rem 0;">${draft.title || 'Untitled Draft'}</h4>
+                <p class="secondary" style="font-size: 0.85rem; margin-bottom: 0.5rem;">
+                  Saved ${timeSince(draft.updated_at)} ago
+                </p>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                  ${draft.tags ? draft.tags.split(',').slice(0, 3).map(tag =>
+                    `<span class="tag" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.1); border-radius: 4px;">${tag}</span>`
+                  ).join('') : ''}
+                </div>
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <button class="btn-secondary" onclick="loadDraft('${draft.id}')" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                  Continue
+                </button>
+                <button class="btn-secondary" onclick="deleteDraft('${draft.id}')" style="padding: 0.5rem 1rem; font-size: 0.85rem; background: rgba(204,0,0,0.2);">
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        `).join('');
+
+      } catch (error) {
+        console.error('Error loading drafts:', error);
+        draftsList.innerHTML = '<p class="secondary" style="text-align: center; padding: 2rem;">Error loading drafts</p>';
+      }
+    }
+
+    async function loadDraft(draftId) {
+      try {
+        const { data: draft, error } = await supabaseClient
+          .from('video_drafts')
+          .select('*')
+          .eq('id', draftId)
+          .single();
+
+        if (error) throw error;
+
+        // Switch to upload tab
+        document.querySelector('[data-tab="upload"]').click();
+
+        // Populate form
+        document.getElementById('videoTitle').value = draft.title || '';
+        if (quillEditor && draft.description) {
+          quillEditor.root.innerHTML = draft.description;
+        }
+
+        // Select tags
+        if (draft.tags) {
+          const tags = draft.tags.split(',');
+          document.querySelectorAll('input[name="tags"]').forEach(checkbox => {
+            checkbox.checked = tags.includes(checkbox.value);
+          });
+        }
+
+        // Restore visibility setting
+        const visibilityValue = draft.is_public !== false ? 'public' : 'private';
+        document.querySelector(`input[name="visibility"][value="${visibilityValue}"]`).checked = true;
+
+        // Update visual state
+        const publicOption = document.getElementById('publicOption');
+        const privateOption = document.getElementById('privateOption');
+        publicOption.classList.remove('active');
+        privateOption.classList.remove('active');
+        publicOption.style.border = '2px solid transparent';
+        privateOption.style.border = '2px solid transparent';
+
+        if (visibilityValue === 'public') {
+          publicOption.classList.add('active');
+          publicOption.style.border = '2px solid var(--accent-red)';
+        } else {
+          privateOption.classList.add('active');
+          privateOption.style.border = '2px solid var(--accent-red)';
+        }
+
+        // Store draft ID for updating
+        uploadState.draftId = draftId;
+
+        showNotification('Draft loaded successfully', 'success');
+      } catch (error) {
+        console.error('Error loading draft:', error);
+        showNotification('Error loading draft', 'error');
+      }
+    }
+
+    async function deleteDraft(draftId) {
+      if (!confirm('Are you sure you want to delete this draft?')) return;
+
+      try {
+        const { error } = await supabaseClient
+          .from('video_drafts')
+          .delete()
+          .eq('id', draftId);
+
+        if (error) throw error;
+
+        showNotification('Draft deleted', 'success');
+        await loadDrafts();
+      } catch (error) {
+        console.error('Error deleting draft:', error);
+        showNotification('Error deleting draft', 'error');
+      }
+    }
+
+    async function saveDraft() {
+      try {
+        const user = await getCurrentUser();
+        if (!user) {
+          showNotification('Please log in to save drafts', 'error');
+          return;
+        }
+
+        const title = document.getElementById('videoTitle').value.trim();
+        const description = quillEditor ? quillEditor.root.innerHTML : '';
+        const selectedTags = Array.from(document.querySelectorAll('input[name="tags"]:checked'))
+          .map(cb => cb.value);
+        const allTags = [...selectedTags, ...customTags].join(',');
+        const visibility = document.querySelector('input[name="visibility"]:checked').value;
+
+        const draftData = {
+          user_id: user.id,
+          title: title || 'Untitled Draft',
+          description,
+          tags: allTags,
+          is_public: visibility === 'public',
+          updated_at: new Date().toISOString()
+        };
+
+        let result;
+        if (uploadState.draftId) {
+          // Update existing draft
+          result = await supabaseClient
+            .from('video_drafts')
+            .update(draftData)
+            .eq('id', uploadState.draftId);
+        } else {
+          // Create new draft
+          result = await supabaseClient
+            .from('video_drafts')
+            .insert([draftData]);
+        }
+
+        if (result.error) throw result.error;
+
+        showNotification('Draft saved successfully', 'success');
+      } catch (error) {
+        console.error('Error saving draft:', error);
+        showNotification('Error saving draft', 'error');
+      }
+    }
+
+    function setupResetButton() {
+      const resetBtn = document.getElementById('resetFormBtn');
+      if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+          if (confirm('Are you sure you want to reset the form? All entered data will be lost.')) {
+            document.getElementById('uploadForm').reset();
+            document.getElementById('videoFile').value = '';
+            document.getElementById('customThumbnailInput').value = '';
+            document.getElementById('videoPreviewSection').classList.add('hidden');
+            document.getElementById('thumbnailSection').style.display = 'none';
+            document.getElementById('detailsSection').style.display = 'none';
+            document.getElementById('submitSection').querySelector('button').disabled = true;
+            document.getElementById('submitSection').querySelector('button').style.opacity = '0.5';
+            document.getElementById('submitSection').querySelector('button').style.cursor = 'not-allowed';
+
+            // Clear custom tags
+            document.getElementById('customTagsList').innerHTML = '';
+            customTags = [];
+
+            // Reset Quill editor
+            if (quillEditor) {
+              quillEditor.setText('');
+            }
+
+            showNotification('Form reset successfully', 'success');
+          }
+        });
+      }
     }
 
     function setupRichTextEditor() {
@@ -354,10 +774,36 @@
         document.getElementById('titleCharCount').textContent = e.target.value.length;
       });
 
+      // Visibility toggle
+      setupVisibilityToggle();
+
       // Form submit
       uploadForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         await handleFormSubmit();
+      });
+    }
+
+    function setupVisibilityToggle() {
+      const visibilityOptions = document.querySelectorAll('.visibility-option');
+      const publicOption = document.getElementById('publicOption');
+      const privateOption = document.getElementById('privateOption');
+
+      visibilityOptions.forEach(option => {
+        option.addEventListener('click', () => {
+          const radio = option.querySelector('input[type="radio"]');
+          radio.checked = true;
+
+          // Update visual state
+          publicOption.classList.remove('active');
+          privateOption.classList.remove('active');
+          publicOption.style.border = '2px solid transparent';
+          privateOption.style.border = '2px solid transparent';
+
+          const card = option.querySelector('.visibility-card');
+          card.classList.add('active');
+          card.style.border = '2px solid var(--accent-red)';
+        });
       });
     }
 
@@ -372,16 +818,29 @@
       submitBtn.style.cursor = 'pointer';
       submitBtn.nextElementSibling.textContent = 'Ready to upload!';
 
-      // Show video preview section
+      // Show video preview sections (both mobile and desktop)
       document.getElementById('videoPreviewSection').classList.remove('hidden');
+      const desktopPreviewSection = document.getElementById('videoPreviewSectionDesktop');
+      if (desktopPreviewSection) {
+        desktopPreviewSection.style.display = 'block';
+      }
 
-      // Display file info
+      // Display file info (both versions)
       const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
       document.getElementById('originalSize').textContent = `${fileSizeMB} MB`;
+      const originalSizeDesktop = document.getElementById('originalSizeDesktop');
+      if (originalSizeDesktop) originalSizeDesktop.textContent = `${fileSizeMB} MB`;
 
-      // Load video preview
+      // Load video preview (mobile)
       const videoPreview = document.getElementById('videoPreview');
-      videoPreview.src = URL.createObjectURL(file);
+      const videoURL = URL.createObjectURL(file);
+      videoPreview.src = videoURL;
+
+      // Load video preview (desktop)
+      const videoPreviewDesktop = document.getElementById('videoPreviewDesktop');
+      if (videoPreviewDesktop) {
+        videoPreviewDesktop.src = videoURL;
+      }
 
       // Extract metadata
       await new Promise((resolve, reject) => {
@@ -390,14 +849,31 @@
           uploadState.metadata.width = videoPreview.videoWidth;
           uploadState.metadata.height = videoPreview.videoHeight;
 
-          // Display metadata
-          document.getElementById('videoDuration').textContent = formatTime(videoPreview.duration);
-          document.getElementById('videoResolution').textContent = `${videoPreview.videoWidth}x${videoPreview.videoHeight}`;
+          const durationText = formatTime(videoPreview.duration);
+          const resolutionText = `${videoPreview.videoWidth}x${videoPreview.videoHeight}`;
+
+          // Display metadata (mobile)
+          document.getElementById('videoDuration').textContent = durationText;
+          document.getElementById('videoResolution').textContent = resolutionText;
+
+          // Display metadata (desktop)
+          const videoDurationDesktop = document.getElementById('videoDurationDesktop');
+          const videoResolutionDesktop = document.getElementById('videoResolutionDesktop');
+          if (videoDurationDesktop) videoDurationDesktop.textContent = durationText;
+          if (videoResolutionDesktop) videoResolutionDesktop.textContent = resolutionText;
 
           // Auto-detect quality
           const quality = detectQuality(videoPreview.videoWidth, videoPreview.videoHeight);
           uploadState.metadata.quality = quality;
           document.getElementById('detectedQuality').textContent = quality;
+          const detectedQualityDesktop = document.getElementById('detectedQualityDesktop');
+          if (detectedQualityDesktop) detectedQualityDesktop.textContent = quality;
+
+          // Show desktop video container
+          const videoPreviewContainerDesktop = document.getElementById('videoPreviewContainerDesktop');
+          if (videoPreviewContainerDesktop) {
+            videoPreviewContainerDesktop.classList.remove('hidden');
+          }
 
           // Check if compression needed
           const needsCompression = file.size > 100 * 1024 * 1024; // > 100MB
@@ -408,15 +884,23 @@
             await autoCompressVideo(file);
           } else {
             document.getElementById('finalSize').textContent = `${fileSizeMB} MB`;
+            const finalSizeDesktop = document.getElementById('finalSizeDesktop');
+            if (finalSizeDesktop) finalSizeDesktop.textContent = `${fileSizeMB} MB`;
           }
 
           // Generate thumbnails
           await generateThumbnails();
 
-          // Show remaining sections
+          // Show remaining sections (mobile)
           document.getElementById('thumbnailSection').classList.remove('hidden');
           document.getElementById('detailsSection').classList.remove('hidden');
           document.getElementById('submitSection').classList.remove('hidden');
+
+          // Show desktop thumbnail section
+          const thumbnailSectionDesktop = document.getElementById('thumbnailSectionDesktop');
+          if (thumbnailSectionDesktop) {
+            thumbnailSectionDesktop.style.display = 'block';
+          }
 
           resolve();
         };
@@ -484,33 +968,54 @@
         const blob = new Blob([data.buffer], { type: 'video/mp4' });
         uploadState.processedFile = new File([blob], 'compressed_' + file.name, { type: 'video/mp4' });
 
-        // Update final size
+        // Update final size (both mobile and desktop)
         const finalSizeMB = (uploadState.processedFile.size / (1024 * 1024)).toFixed(2);
         document.getElementById('finalSize').textContent = `${finalSizeMB} MB`;
         document.getElementById('finalSize').style.color = '#10b981'; // Green for compressed
+
+        const finalSizeDesktop = document.getElementById('finalSizeDesktop');
+        if (finalSizeDesktop) {
+          finalSizeDesktop.textContent = `${finalSizeMB} MB`;
+          finalSizeDesktop.style.color = '#10b981';
+        }
 
         // Clean up
         await ffmpeg.deleteFile('input.mp4');
         await ffmpeg.deleteFile('output.mp4');
 
-        document.getElementById('compressionStatus').innerHTML =
-          `<strong>✓ Compressed!</strong> Reduced size by ${((1 - uploadState.processedFile.size / file.size) * 100).toFixed(0)}%`;
+        const compressionMsg = `<strong>✓ Compressed!</strong> Reduced size by ${((1 - uploadState.processedFile.size / file.size) * 100).toFixed(0)}%`;
+        document.getElementById('compressionStatus').innerHTML = compressionMsg;
+
+        const compressionStatusDesktop = document.getElementById('compressionStatusDesktop');
+        if (compressionStatusDesktop) {
+          compressionStatusDesktop.innerHTML = compressionMsg;
+          compressionStatusDesktop.classList.remove('hidden');
+        }
 
         showNotification('Video compressed successfully!', 'success');
       } catch (error) {
         console.error('Compression error:', error);
         document.getElementById('compressionStatus').classList.add('hidden');
+        const compressionStatusDesktop = document.getElementById('compressionStatusDesktop');
+        if (compressionStatusDesktop) compressionStatusDesktop.classList.add('hidden');
+
         showNotification('Compression failed, uploading original video', 'warning');
         uploadState.processedFile = file;
         const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
         document.getElementById('finalSize').textContent = `${fileSizeMB} MB`;
+
+        const finalSizeDesktop = document.getElementById('finalSizeDesktop');
+        if (finalSizeDesktop) finalSizeDesktop.textContent = `${fileSizeMB} MB`;
       }
     }
 
     async function generateThumbnails() {
       const positions = [0.1, 0.3, 0.5, 0.7, 0.9];
       const thumbnailsContainer = document.getElementById('thumbnailsGrid');
+      const thumbnailsContainerDesktop = document.getElementById('thumbnailsGridDesktop');
+
       thumbnailsContainer.innerHTML = '';
+      if (thumbnailsContainerDesktop) thumbnailsContainerDesktop.innerHTML = '';
 
       const video = document.createElement('video');
       video.src = URL.createObjectURL(uploadState.originalFile);
@@ -534,13 +1039,25 @@
 
             canvas.toBlob(blob => {
               uploadState.thumbnails.push(blob);
+              const blobURL = URL.createObjectURL(blob);
 
+              // Create mobile thumbnail
               const img = document.createElement('img');
-              img.src = URL.createObjectURL(blob);
+              img.src = blobURL;
               img.className = 'thumbnail-option';
               img.dataset.index = i;
               img.addEventListener('click', () => selectThumbnail(i));
               thumbnailsContainer.appendChild(img);
+
+              // Create desktop thumbnail
+              if (thumbnailsContainerDesktop) {
+                const imgDesktop = document.createElement('img');
+                imgDesktop.src = blobURL;
+                imgDesktop.className = 'thumbnail-option';
+                imgDesktop.dataset.index = i;
+                imgDesktop.addEventListener('click', () => selectThumbnail(i));
+                thumbnailsContainerDesktop.appendChild(imgDesktop);
+              }
 
               resolve();
             }, 'image/jpeg', 0.9);
@@ -615,6 +1132,7 @@
       const description = quillEditor.root.innerHTML;
       const selectedTags = Array.from(document.querySelectorAll('input[name="tags"]:checked'))
         .map(cb => cb.value);
+      const visibility = document.querySelector('input[name="visibility"]:checked').value;
 
       // Combine predefined and custom tags
       const allTags = [...selectedTags, ...customTags];
@@ -684,7 +1202,8 @@
             thumbnail_url: thumbnailUrl,
             duration: Math.round(uploadState.metadata.duration),
             resolution: `${uploadState.metadata.width}x${uploadState.metadata.height}`,
-            views_count: 0
+            views_count: 0,
+            is_public: visibility === 'public'
           }])
           .select()
           .single();
@@ -717,9 +1236,6 @@
     }
   </script>
 
-  <!-- Adsterra Scripts -->
-  <script async="async" data-cfasync="false" src="https://pl28394065.effectivegatecpm.com/ce630968429585fc33b1cd2e0f35d06a/invoke.js"></script>
-  <div id="container-ce630968429585fc33b1cd2e0f35d06a"></div>
-  <script src="https://pl28394078.effectivegatecpm.com/30/7d/66/307d667458334a8e0ab5a0293231b8b3.js"></script>
+  <!-- Ads removed -->
 </body>
 </html>

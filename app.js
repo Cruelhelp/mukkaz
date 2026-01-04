@@ -17,6 +17,7 @@ function loadIcons() {
   const iconElements = {
     hamburgerIcon: 'hamburger',
     searchIcon: 'search',
+    mobileSearchIcon: 'search',
     homeIcon: 'home',
     trendingIcon: 'trending',
     uploadIcon: 'upload',
@@ -116,10 +117,28 @@ function closeSidebar() {
   }
 }
 
+
 // Check authentication state
 async function checkAuthState() {
   try {
     currentUserState = await getCurrentUser();
+
+    // Check if user is admin and redirect to admin panel
+    if (currentUserState && window.location.pathname.includes('index.html')) {
+      const profile = await getProfile(currentUserState.id);
+      if (profile && profile.role === 'admin') {
+        // Check if user just logged in (using sessionStorage flag)
+        const justLoggedIn = sessionStorage.getItem('justLoggedIn');
+        if (justLoggedIn === 'true') {
+          sessionStorage.removeItem('justLoggedIn');
+          showNotification('Welcome back, Admin!', 'success');
+          setTimeout(() => {
+            window.location.href = 'admin.html';
+          }, 1000);
+          return;
+        }
+      }
+    }
   } catch (error) {
     console.error('Error checking auth state:', error);
     showNotification('Error loading user data. Some features may not work.', 'error');
@@ -185,9 +204,16 @@ async function renderNavbar() {
   if (currentUserState) {
     try {
       const profile = await getProfile(currentUserState.id);
+      const isAdmin = profile && profile.role === 'admin';
+      const adminButton = isAdmin ? `
+        <a href="admin.html" class="nav-icon" title="Admin Panel" style="color: var(--accent-red); display: inline-flex; align-items: center; justify-content: center;">
+          <span id="adminPanelIcon">${getIcon('shield')}</span>
+        </a>
+      ` : '';
 
       if (profile && profile.avatar_url) {
         navbarRight.innerHTML = `
+          ${adminButton}
           <a href="upload.html" class="nav-icon">
             ${getIcon('upload')}
           </a>
@@ -198,6 +224,11 @@ async function renderNavbar() {
           <div class="avatar-dropdown-container">
             <img src="${profile.avatar_url}" alt="${profile.username || 'User'}" class="avatar avatar-clickable" id="avatarDropdownBtn">
             <div class="avatar-dropdown hidden" id="avatarDropdown">
+              ${isAdmin ? `<a href="admin.html" class="dropdown-item" style="color: var(--accent-red); font-weight: 600;">
+                ${getIcon('shield')}
+                <span>Admin Panel</span>
+              </a>
+              <div class="dropdown-divider"></div>` : ''}
               <a href="profile.html" class="dropdown-item">
                 ${getIcon('user')}
                 <span>My Profile</span>
@@ -221,6 +252,7 @@ async function renderNavbar() {
       } else {
         // Profile exists but no avatar
         navbarRight.innerHTML = `
+          ${adminButton}
           <a href="upload.html" class="nav-icon">
             ${getIcon('upload')}
           </a>
@@ -233,6 +265,11 @@ async function renderNavbar() {
               ${getIcon('user')}
             </div>
             <div class="avatar-dropdown hidden" id="avatarDropdown">
+              ${isAdmin ? `<a href="admin.html" class="dropdown-item" style="color: var(--accent-red); font-weight: 600;">
+                ${getIcon('shield')}
+                <span>Admin Panel</span>
+              </a>
+              <div class="dropdown-divider"></div>` : ''}
               <a href="profile.html" class="dropdown-item">
                 ${getIcon('user')}
                 <span>My Profile</span>
@@ -597,6 +634,9 @@ async function handleSignIn(e) {
   try {
     await signIn(email, password);
     currentUserState = await getCurrentUser();
+
+    // Set flag for admin redirect
+    sessionStorage.setItem('justLoggedIn', 'true');
 
     showNotification('Signed in successfully!', 'success');
     closeModal();

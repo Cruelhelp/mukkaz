@@ -311,6 +311,28 @@ async function addComment(videoId, text) {
     .single();
 
   if (error) throw error;
+
+  // Get video owner to send notification
+  const { data: video } = await supabaseClient
+    .from('videos')
+    .select('user_id, title')
+    .eq('id', videoId)
+    .single();
+
+  // Create notification for video owner (if not commenting on own video)
+  if (video && video.user_id !== user.id) {
+    await createNotification(
+      video.user_id,
+      'new_comment',
+      'New Comment!',
+      `${(await getProfile(user.id)).username} commented on your video: "${video.title}"`,
+      `watch.html?v=${videoId}`,
+      user.id,
+      videoId,
+      data.id
+    );
+  }
+
   return data;
 }
 
@@ -350,6 +372,29 @@ async function voteVideo(videoId, voteType) {
     .single();
 
   if (error) throw error;
+
+  // Get video owner to send notification (only for likes)
+  if (voteType === 'like') {
+    const { data: video } = await supabaseClient
+      .from('videos')
+      .select('user_id, title')
+      .eq('id', videoId)
+      .single();
+
+    // Create notification for video owner (if not liking own video)
+    if (video && video.user_id !== user.id) {
+      await createNotification(
+        video.user_id,
+        'video_like',
+        'Someone liked your video!',
+        `${(await getProfile(user.id)).username} liked your video: "${video.title}"`,
+        `watch.html?v=${videoId}`,
+        user.id,
+        videoId
+      );
+    }
+  }
+
   return data;
 }
 

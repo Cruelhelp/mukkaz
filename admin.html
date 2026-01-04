@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Mukkaz</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script src="config.local.js" onerror="console.warn('config.local.js not found - using defaults')"></script>
+  <script src="config.js"></script>
+  <script src="config.cloudflare.js"></script>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="youtube-redesign.css">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .admin-container {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid rgba(255,255,255,0.1);
+    }
+
+    .admin-tabs {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .admin-tab {
+      padding: 0.75rem 1.5rem;
+      background: var(--bg-secondary);
+      border: none;
+      border-radius: 8px;
+      color: var(--text-primary);
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .admin-tab:hover {
+      background: var(--bg-hover);
+    }
+
+    .admin-tab.active {
+      background: var(--accent-red);
+      color: white;
+    }
+
+    .admin-section {
+      display: none;
+    }
+
+    .admin-section.active {
+      display: block;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--bg-secondary);
+      padding: 1.5rem;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .stat-card h3 {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin: 0 0 0.5rem 0;
+      font-weight: 500;
+      text-transform: uppercase;
+    }
+
+    .stat-card .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent-red);
+      margin: 0;
+    }
+
+    .stat-card .stat-change {
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+      color: #10b981;
+    }
+
+    .stat-card .stat-change.negative {
+      color: #ef4444;
+    }
+
+    .data-table {
+      width: 100%;
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .table-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .table-search {
+      flex: 1;
+      max-width: 300px;
+      padding: 0.5rem 1rem;
+      background: var(--bg-primary);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      color: var(--text-primary);
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 1rem 1.5rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    th {
+      font-weight: 600;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+    }
+
+    td {
+      color: var(--text-primary);
+    }
+
+    tr:hover td {
+      background: var(--bg-hover);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-success {
+      background: rgba(16, 185, 129, 0.2);
+      color: #10b981;
+    }
+
+    .badge-danger {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+    }
+
+    .badge-warning {
+      background: rgba(245, 158, 11, 0.2);
+      color: #f59e0b;
+    }
+
+    .badge-info {
+      background: rgba(59, 130, 246, 0.2);
+      color: #3b82f6;
+    }
+
+    .action-btn {
+      padding: 0.5rem 1rem;
+      background: var(--bg-primary);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      color: var(--text-primary);
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+
+    .action-btn:hover {
+      background: var(--bg-hover);
+      border-color: var(--accent-red);
+    }
+
+    .action-btn.danger {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+
+    .action-btn.danger:hover {
+      background: #ef4444;
+      color: white;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      z-index: 3000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--bg-secondary);
+      padding: 2rem;
+      border-radius: 12px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+    }
+
+    .close-modal {
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--bg-primary);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-family: inherit;
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1.5rem;
+    }
+
+    .pagination button {
+      padding: 0.5rem 1rem;
+      background: var(--bg-primary);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    .pagination button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .pagination button.active {
+      background: var(--accent-red);
+      border-color: var(--accent-red);
+    }
+
+    .chart-container {
+      background: var(--bg-secondary);
+      padding: 1.5rem;
+      border-radius: 12px;
+      margin-bottom: 2rem;
+    }
+
+    .activity-item {
+      padding: 1rem;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .activity-item:hover {
+      background: var(--bg-hover);
+    }
+
+    /* Toggle Switch Styles */
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 24px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #555;
+      transition: 0.3s;
+      border-radius: 24px;
+    }
+
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+      background-color: var(--accent-red);
+    }
+
+    .toggle-switch input:checked + .toggle-slider:before {
+      transform: translateX(24px);
+    }
+
+    /* Admin Sidebar Styles */
+    .admin-sidebar {
+      position: fixed;
+      left: 0;
+      top: 60px;
+      width: 240px;
+      height: calc(100vh - 60px);
+      background: var(--bg-secondary);
+      border-right: 1px solid rgba(255,255,255,0.1);
+      overflow-y: auto;
+      z-index: 100;
+      transition: transform 0.3s ease;
+    }
+
+    .admin-sidebar-section {
+      padding: 1rem 0;
+    }
+
+    .admin-sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem 1.5rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .admin-sidebar-item:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    .admin-sidebar-item.active {
+      background: rgba(255, 0, 0, 0.1);
+      color: var(--accent-red);
+      border-left: 3px solid var(--accent-red);
+    }
+
+    .admin-sidebar-item span:first-child {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .admin-sidebar-item span:last-child {
+      flex: 1;
+    }
+
+    /* Admin Sidebar backdrop for mobile */
+    .admin-sidebar-backdrop {
+      display: none;
+      position: fixed;
+      top: 60px;
+      left: 0;
+      width: 100%;
+      height: calc(100vh - 60px);
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 99;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .admin-sidebar-backdrop.active {
+      display: block;
+      opacity: 1;
+    }
+
+    @media (max-width: 1024px) {
+      .admin-sidebar {
+        transform: translateX(-100%);
+      }
+
+      .admin-sidebar.open {
+        transform: translateX(0);
+      }
+
+      .admin-container {
+        margin-left: 0 !important;
+      }
+    }
+
+    @media (min-width: 1025px) {
+      .admin-container {
+        margin-left: 240px;
+      }
+
+      .hamburger-btn {
+        display: none;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .admin-container {
+        padding: 1rem;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      /* Make two-column layouts stack on mobile */
+      div[style*="grid-template-columns: 2fr 1fr"],
+      div[style*="grid-template-columns: 1fr 1fr"] {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1rem !important;
+      }
+
+      .admin-tabs {
+        overflow-x: auto;
+        overflow-y: hidden;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .admin-tab {
+        white-space: nowrap;
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+      }
+
+      .table-wrapper {
+        overflow-x: scroll;
+      }
+
+      th, td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.85rem;
+      }
+
+      .chart-container canvas {
+        max-height: 250px !important;
+      }
+
+      .action-btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="navbar-left">
+      <button class="nav-icon hamburger-btn" id="hamburgerBtn">
+        <span id="hamburgerIcon"></span>
+      </button>
+      <a href="index.html" class="logo">
+        <img src="logo.png" alt="Mukkaz" onerror="this.style.display='none'">
+      </a>
+    </div>
+
+    <div class="navbar-center">
+      <h2 style="color: var(--accent-red); font-weight: 700;">Admin Panel</h2>
+    </div>
+
+    <div class="navbar-right" id="navbarRight">
+      <div class="navbar-skeleton" id="navbarSkeleton">
+        <div class="skeleton-nav-icon"></div>
+        <div class="skeleton-nav-icon"></div>
+        <div class="skeleton-avatar"></div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Admin Sidebar -->
+  <aside class="admin-sidebar" id="adminSidebar">
+    <div class="admin-sidebar-section">
+      <a href="#" class="admin-sidebar-item active" data-tab="dashboard">
+        <span id="dashboardIcon"></span>
+        <span>Dashboard</span>
+      </a>
+      <a href="#" class="admin-sidebar-item" data-tab="users">
+        <span id="usersIcon"></span>
+        <span>Users</span>
+      </a>
+      <a href="#" class="admin-sidebar-item" data-tab="videos">
+        <span id="videosIcon"></span>
+        <span>Videos</span>
+      </a>
+      <a href="#" class="admin-sidebar-item" data-tab="analytics">
+        <span id="analyticsIcon"></span>
+        <span>Analytics</span>
+      </a>
+      <a href="#" class="admin-sidebar-item" data-tab="activity">
+        <span id="activityIcon"></span>
+        <span>Activity Logs</span>
+      </a>
+      <a href="#" class="admin-sidebar-item" data-tab="ads">
+        <span id="adsIcon"></span>
+        <span>Ad Control</span>
+      </a>
+      <a href="#" class="admin-sidebar-item" data-tab="cloudflare">
+        <span id="cloudflareIcon"></span>
+        <span>Cloudflare</span>
+      </a>
+      <a href="#" class="admin-sidebar-item" data-tab="database">
+        <span id="databaseIcon"></span>
+        <span>Database</span>
+      </a>
+      <a href="#" class="admin-sidebar-item" data-tab="settings">
+        <span id="settingsIcon"></span>
+        <span>Settings</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Admin Sidebar Backdrop for Mobile -->
+  <div class="admin-sidebar-backdrop" id="adminSidebarBackdrop"></div>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="admin-container">
+      <!-- Header -->
+      <div class="admin-header">
+        <div>
+          <h1>Admin Dashboard</h1>
+          <p class="secondary">Manage your platform with full control</p>
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+          <button class="btn-secondary" onclick="window.location.href='index.html'">
+            <span id="backIcon"></span> Back to Site
+          </button>
+          <button class="btn-secondary" onclick="refreshAllData()">
+            <span id="refreshIcon"></span> Refresh Data
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabs hidden - using sidebar navigation instead -->
+      <div class="admin-tabs" style="display: none;">
+        <button class="admin-tab active" data-tab="dashboard">Dashboard</button>
+        <button class="admin-tab" data-tab="users">Users</button>
+        <button class="admin-tab" data-tab="videos">Videos</button>
+        <button class="admin-tab" data-tab="analytics">Analytics</button>
+        <button class="admin-tab" data-tab="activity">Activity Logs</button>
+        <button class="admin-tab" data-tab="ads">Ad Control</button>
+        <button class="admin-tab" data-tab="cloudflare">Cloudflare</button>
+        <button class="admin-tab" data-tab="database">Database</button>
+        <button class="admin-tab" data-tab="settings">Settings</button>
+      </div>
+
+      <!-- Dashboard Section -->
+      <div class="admin-section active" id="dashboard-section">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>Total Users</h3>
+            <p class="stat-value" id="totalUsers">0</p>
+            <p class="stat-change" id="usersChange">+0% from last month</p>
+          </div>
+          <div class="stat-card">
+            <h3>Total Videos</h3>
+            <p class="stat-value" id="totalVideos">0</p>
+            <p class="stat-change" id="videosChange">+0% from last month</p>
+          </div>
+          <div class="stat-card">
+            <h3>Total Views</h3>
+            <p class="stat-value" id="totalViews">0</p>
+            <p class="stat-change" id="viewsChange">+0% from last month</p>
+          </div>
+          <div class="stat-card">
+            <h3>Active Users (24h)</h3>
+            <p class="stat-value" id="activeUsers">0</p>
+            <p class="stat-change" id="activeChange">Active now</p>
+          </div>
+        </div>
+
+        <!-- Two Column Layout like History Page -->
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-top: 2rem;">
+          <!-- Main Charts Section -->
+          <div>
+            <div class="chart-container" style="margin-bottom: 2rem;">
+              <h3>Views Over Time (Last 7 Days)</h3>
+              <canvas id="viewsChart" style="max-height: 300px;"></canvas>
+            </div>
+
+            <div class="chart-container" style="margin-bottom: 2rem;">
+              <h3>User Growth (Last 30 Days)</h3>
+              <canvas id="userGrowthChart" style="max-height: 300px;"></canvas>
+            </div>
+
+            <div class="chart-container">
+              <h3>Video Uploads (Last 7 Days)</h3>
+              <canvas id="videoUploadsChart" style="max-height: 300px;"></canvas>
+            </div>
+          </div>
+
+          <!-- Sidebar Section -->
+          <div>
+            <div class="chart-container" style="margin-bottom: 2rem;">
+              <h3>Quick Actions</h3>
+              <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <button class="btn-primary" onclick="showTab('users')">Manage Users</button>
+                <button class="btn-primary" onclick="showTab('videos')">Manage Videos</button>
+                <button class="btn-secondary" onclick="exportData('users')">Export Users</button>
+                <button class="btn-secondary" onclick="exportData('videos')">Export Videos</button>
+                <button class="btn-secondary" onclick="clearCache()">Clear Cache</button>
+              </div>
+            </div>
+
+            <div class="chart-container">
+              <h3>Recent Activity</h3>
+              <div id="recentActivityDashboard"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Users Section -->
+      <div class="admin-section" id="users-section">
+        <div class="data-table">
+          <div class="table-header">
+            <h3>User Management</h3>
+            <div class="table-actions">
+              <input type="text" class="table-search" id="userSearch" placeholder="Search users...">
+              <button class="btn-primary" onclick="openUserModal()">Add User</button>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table id="usersTable">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Username</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Videos</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody">
+                <tr>
+                  <td colspan="8" style="text-align: center; padding: 2rem;">
+                    Loading users...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" id="usersPagination"></div>
+        </div>
+      </div>
+
+      <!-- Videos Section -->
+      <div class="admin-section" id="videos-section">
+        <div class="data-table">
+          <div class="table-header">
+            <h3>Video Management</h3>
+            <div class="table-actions">
+              <input type="text" class="table-search" id="videoSearch" placeholder="Search videos...">
+              <select class="table-search" id="videoFilter" onchange="filterVideos()">
+                <option value="all">All Videos</option>
+                <option value="public">Public</option>
+                <option value="private">Private</option>
+                <option value="reported">Reported</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table id="videosTable">
+              <thead>
+                <tr>
+                  <th>Thumbnail</th>
+                  <th>Title</th>
+                  <th>Owner</th>
+                  <th>Views</th>
+                  <th>Visibility</th>
+                  <th>Duration</th>
+                  <th>Uploaded</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="videosTableBody">
+                <tr>
+                  <td colspan="8" style="text-align: center; padding: 2rem;">
+                    Loading videos...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" id="videosPagination"></div>
+        </div>
+      </div>
+
+      <!-- Analytics Section -->
+      <div class="admin-section" id="analytics-section">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>Avg. Watch Time</h3>
+            <p class="stat-value" id="avgWatchTime">0m</p>
+          </div>
+          <div class="stat-card">
+            <h3>Engagement Rate</h3>
+            <p class="stat-value" id="engagementRate">0%</p>
+          </div>
+          <div class="stat-card">
+            <h3>Bounce Rate</h3>
+            <p class="stat-value" id="bounceRate">0%</p>
+          </div>
+          <div class="stat-card">
+            <h3>Total Storage</h3>
+            <p class="stat-value" id="totalStorage">0 GB</p>
+          </div>
+        </div>
+
+        <!-- Two Column Layout for Charts -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+          <div class="chart-container">
+            <h3>Video Views Distribution</h3>
+            <canvas id="viewsDistributionChart" style="max-height: 300px;"></canvas>
+          </div>
+
+          <div class="chart-container">
+            <h3>Content Type Breakdown</h3>
+            <canvas id="contentTypeChart" style="max-height: 300px;"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-container" style="margin-top: 2rem;">
+          <h3>Top 10 Videos by Views</h3>
+          <canvas id="topVideosChart" style="max-height: 350px;"></canvas>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+          <div class="chart-container">
+            <h3>User Activity Heatmap</h3>
+            <canvas id="activityHeatmapChart" style="max-height: 300px;"></canvas>
+          </div>
+
+          <div class="chart-container">
+            <h3>Engagement Metrics</h3>
+            <canvas id="engagementChart" style="max-height: 300px;"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity Logs Section -->
+      <div class="admin-section" id="activity-section">
+        <div class="data-table">
+          <div class="table-header">
+            <h3>Activity Logs</h3>
+            <div class="table-actions">
+              <select class="table-search" id="activityFilter" onchange="filterActivity()">
+                <option value="all">All Activities</option>
+                <option value="user">User Actions</option>
+                <option value="video">Video Actions</option>
+                <option value="admin">Admin Actions</option>
+                <option value="error">Errors</option>
+              </select>
+              <button class="btn-secondary" onclick="exportLogs()">Export Logs</button>
+            </div>
+          </div>
+          <div id="activityList"></div>
+          <div class="pagination" id="activityPagination"></div>
+        </div>
+      </div>
+
+      <!-- Ad Control Section -->
+      <div class="admin-section" id="ads-section">
+        <h2 style="margin-bottom: 1.5rem;">Adsterra Ad Control</h2>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>API Status</h3>
+            <p class="stat-value" id="adsterraStatus"><span class="badge badge-success">Connected</span></p>
+          </div>
+          <div class="stat-card">
+            <h3>Total Impressions</h3>
+            <p class="stat-value" id="adsterraImpressions">Loading...</p>
+          </div>
+          <div class="stat-card">
+            <h3>Total Clicks</h3>
+            <p class="stat-value" id="adsterraClicks">Loading...</p>
+          </div>
+          <div class="stat-card">
+            <h3>CTR (Click Rate)</h3>
+            <p class="stat-value" id="adsterraCTR">0.00%</p>
+          </div>
+          <div class="stat-card">
+            <h3>Earnings (Est.)</h3>
+            <p class="stat-value" id="adsterraEarnings">$0.00</p>
+          </div>
+        </div>
+
+        <div class="chart-container" style="margin-top: 2rem;">
+          <h3>API Configuration</h3>
+          <div style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 8px; margin-top: 1rem;">
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label class="form-label">API Key</label>
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="password" id="adsterraApiKey" class="form-input" value="426d86a9a7e53e7d2721398babe557e9" readonly style="flex: 1;">
+                <button class="btn-secondary" onclick="toggleAdsterraApiKey()">Show</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">API Status</label>
+              <p class="secondary">Last synced: <span id="adsterraLastSync">Never</span></p>
+            </div>
+            <button class="btn-primary" onclick="syncAdsterraData()">Sync Data</button>
+            <button class="btn-secondary" onclick="testAdsterraConnection()">Test Connection</button>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+          <div class="chart-container">
+            <h3>Ad Placement Controls</h3>
+            <div id="adPlacementsList" style="margin-top: 1rem;">
+              <div class="activity-item" style="display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                  <strong>Watch Page - Banner Ad</strong>
+                  <p class="secondary">Below video player</p>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="watchPageBannerToggle" checked onchange="saveAdSettings()">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="activity-item" style="display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                  <strong>Watch Page - Ads Enabled</strong>
+                  <p class="secondary">All ads on video page</p>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="watchPageEnabledToggle" checked onchange="saveAdSettings()">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="activity-item" style="opacity: 0.5;">
+                <div>
+                  <strong>Home Page Ads</strong>
+                  <p class="secondary">Currently disabled</p>
+                </div>
+                <span class="badge badge-warning">Disabled</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="chart-container">
+            <h3>Performance (Last 7 Days)</h3>
+            <canvas id="adPerformanceChart" style="max-height: 300px;"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-container" style="margin-top: 2rem;">
+          <h3>Ad Management</h3>
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
+            <button class="btn-secondary" onclick="window.open('https://publishers.adsterra.com/', '_blank')">Open Adsterra Dashboard</button>
+            <button class="btn-secondary" onclick="clearAdCache()">Clear Ad Cache</button>
+            <button class="btn-secondary" onclick="exportAdData()">Export Ad Data</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cloudflare Section -->
+      <div class="admin-section" id="cloudflare-section">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>Total Stream Videos</h3>
+            <p class="stat-value" id="cfTotalVideos">0</p>
+          </div>
+          <div class="stat-card">
+            <h3>Storage Used</h3>
+            <p class="stat-value" id="cfStorageUsed">0 GB</p>
+          </div>
+          <div class="stat-card">
+            <h3>Minutes Delivered</h3>
+            <p class="stat-value" id="cfMinutesDelivered">0</p>
+          </div>
+          <div class="stat-card">
+            <h3>Monthly Costs</h3>
+            <p class="stat-value" id="cfMonthlyCost">$0</p>
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <h3>Cloudflare Stream API Info</h3>
+          <p class="secondary">Account ID: <span id="cfAccountId">Loading...</span></p>
+          <p class="secondary">API Status: <span id="cfApiStatus" class="badge badge-success">Connected</span></p>
+        </div>
+
+        <div class="data-table">
+          <div class="table-header">
+            <h3>Stream Videos</h3>
+            <div class="table-actions">
+              <button class="btn-secondary" onclick="syncCloudflare()">Sync with Cloudflare</button>
+              <button class="btn-secondary" onclick="purgeCache()">Purge Cache</button>
+            </div>
+          </div>
+          <div id="cloudflareVideosList"></div>
+        </div>
+      </div>
+
+      <!-- Database Section -->
+      <div class="admin-section" id="database-section">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>Database Size</h3>
+            <p class="stat-value" id="dbSize">0 MB</p>
+          </div>
+          <div class="stat-card">
+            <h3>Total Tables</h3>
+            <p class="stat-value" id="dbTables">0</p>
+          </div>
+          <div class="stat-card">
+            <h3>Total Rows</h3>
+            <p class="stat-value" id="dbRows">0</p>
+          </div>
+          <div class="stat-card">
+            <h3>Connections</h3>
+            <p class="stat-value" id="dbConnections">0</p>
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <h3>Database Tables</h3>
+          <div id="databaseTables"></div>
+        </div>
+
+        <div class="chart-container">
+          <h3>SQL Query Console</h3>
+          <div class="form-group">
+            <label>Execute SQL Query (Read-only for safety)</label>
+            <textarea id="sqlQuery" rows="6" placeholder="SELECT * FROM videos LIMIT 10;"></textarea>
+          </div>
+          <button class="btn-primary" onclick="executeSQLQuery()">Execute Query</button>
+          <button class="btn-secondary" onclick="clearQueryResults()">Clear Results</button>
+          <div id="queryResults" style="margin-top: 1rem;"></div>
+        </div>
+
+        <div class="chart-container">
+          <h3>Backup & Restore</h3>
+          <button class="btn-primary" onclick="backupDatabase()">Backup Database</button>
+          <button class="btn-secondary" onclick="showRestoreModal()">Restore from Backup</button>
+        </div>
+      </div>
+
+      <!-- Settings Section -->
+      <div class="admin-section" id="settings-section">
+        <div class="chart-container">
+          <h3>Platform Settings</h3>
+          <div class="form-group">
+            <label>Site Name</label>
+            <input type="text" id="siteName" value="Mukkaz">
+          </div>
+          <div class="form-group">
+            <label>Maintenance Mode</label>
+            <select id="maintenanceMode">
+              <option value="false">Disabled</option>
+              <option value="true">Enabled</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>User Registration</label>
+            <select id="userRegistration">
+              <option value="true">Enabled</option>
+              <option value="false">Disabled</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Max Upload Size (MB)</label>
+            <input type="number" id="maxUploadSize" value="500">
+          </div>
+          <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
+        </div>
+
+        <div class="chart-container">
+          <h3>Admin Users</h3>
+          <div id="adminUsersList"></div>
+          <button class="btn-primary" onclick="addAdminUser()">Add Admin User</button>
+        </div>
+
+        <div class="chart-container">
+          <h3>System Info</h3>
+          <p class="secondary">Version: <strong>1.0.0</strong></p>
+          <p class="secondary">Node Environment: <strong id="nodeEnv">Production</strong></p>
+          <p class="secondary">Last Deployment: <strong id="lastDeployment">Loading...</strong></p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- User Modal -->
+  <div class="modal" id="userModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="userModalTitle">Add User</h2>
+        <button class="close-modal" onclick="closeUserModal()">×</button>
+      </div>
+      <form id="userForm" onsubmit="saveUser(event)">
+        <div class="form-group">
+          <label>Username *</label>
+          <input type="text" id="userUsername" required>
+        </div>
+        <div class="form-group">
+          <label>Email *</label>
+          <input type="email" id="userEmail" required>
+        </div>
+        <div class="form-group">
+          <label>Role</label>
+          <select id="userRole">
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+            <option value="moderator">Moderator</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="userStatus">
+            <option value="active">Active</option>
+            <option value="suspended">Suspended</option>
+            <option value="banned">Banned</option>
+          </select>
+        </div>
+        <div style="display: flex; gap: 1rem;">
+          <button type="submit" class="btn-primary" style="flex: 1;">Save</button>
+          <button type="button" class="btn-secondary" onclick="closeUserModal()" style="flex: 1;">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Video Modal -->
+  <div class="modal" id="videoModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Video Details</h2>
+        <button class="close-modal" onclick="closeVideoModal()">×</button>
+      </div>
+      <div id="videoModalContent"></div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="icons.js"></script>
+  <script src="utils.js"></script>
+  <script src="supabase.js"></script>
+  <script src="cloudflare-stream.js"></script>
+  <script src="app.js"></script>
+
+  <script src="admin.js"></script>
+</body>
+</html>

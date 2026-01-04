@@ -2569,3 +2569,174 @@ video[picture-in-picture] {
     font-size: 22px;
   }
 }
+
+/* Video Item Action Icons */
+.video-item-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-left: auto;
+}
+
+.history-action-icon {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  width: 36px;
+  height: 36px;
+}
+
+.history-action-icon:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.history-action-icon.danger:hover {
+  background: rgba(204, 0, 0, 0.1);
+  color: var(--accent-red);
+}
+
+.history-action-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Upload Page Responsive Layout */
+@media (max-width: 1024px) {
+  .history-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .history-sidebar {
+    max-width: 100% !important;
+    width: 100%;
+  }
+
+  .history-filters {
+    margin-bottom: 1rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .history-layout {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .history-filters {
+    order: 0;
+  }
+
+  #submitSection {
+    order: 1;
+    margin-bottom: 1rem !important;
+  }
+
+  .history-main {
+    order: 2;
+  }
+
+  #thumbnailSection {
+    order: 3;
+  }
+
+  #detailsSection {
+    order: 4;
+  }
+
+  #uploadProgressSection {
+    order: 5;
+  }
+
+  .history-actions {
+    order: 6;
+  }
+
+  .history-info {
+    order: 7;
+  }
+}
+
+@media (max-width: 768px) {
+  .file-upload-area {
+    min-height: 200px !important;
+  }
+
+  #videoUploadIcon {
+    font-size: 3rem !important;
+  }
+
+  .file-upload-area p {
+    font-size: 1rem !important;
+  }
+
+  .thumbnails-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .form-input,
+  .form-label {
+    font-size: 16px !important;
+  }
+
+  #uploadSubmitBtn {
+    padding: 0.875rem !important;
+    font-size: 0.95rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .history-filters {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+
+  .history-filters .category-btn {
+    white-space: nowrap;
+  }
+
+  .file-upload-area {
+    min-height: 180px !important;
+    padding: 1rem !important;
+  }
+
+  .file-upload-area p:first-of-type {
+    font-size: 0.9rem !important;
+  }
+
+  .btn-secondary {
+    padding: 0.5rem 1rem !important;
+    font-size: 0.85rem !important;
+  }
+
+  .thumbnails-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .tags-container {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .form-section h3 {
+    font-size: 13px !important;
+  }
+
+  .history-action-btn {
+    font-size: 14px !important;
+    padding: 12px 16px !important;
+  }
+
+  .char-count {
+    font-size: 11px !important;
+  }
+}

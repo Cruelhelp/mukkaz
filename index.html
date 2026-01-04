@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://pl28394065.effectivegatecpm.com https://pl28394078.effectivegatecpm.com https://preferencenail.com https://*.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https: https://videodelivery.net https://cloudflarestream.com; connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net https://api.cloudflare.com https://videodelivery.net https://embed.cloudflarestream.com https://*.com; frame-src 'self' https://embed.cloudflarestream.com https://iframe.videodelivery.net; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://pl28394065.effectivegatecpm.com https://pl28394078.effectivegatecpm.com https://preferencenail.com https://va.vercel-scripts.com https://cdn.growthbook.io https://*.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https: https://videodelivery.net https://cloudflarestream.com; connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net https://api.cloudflare.com https://videodelivery.net https://embed.cloudflarestream.com https://vitals.vercel-insights.com https://cdn.growthbook.io https://*.com; frame-src 'self' https://embed.cloudflarestream.com https://iframe.videodelivery.net; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
   <title>Mukkaz - Home</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <script src="config.local.js" onerror="console.warn('config.local.js not found - using defaults')"></script>
@@ -13,6 +13,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <script src="age-gate.js"></script>
   <script src="components.js"></script>
+  <script src="analytics.js"></script>
+  <script src="growthbook.js"></script>
 </head>
 <body>
   <!-- Navigation Bar -->
@@ -48,6 +50,11 @@
     </div>
 
     <div class="navbar-right" id="navbarRight">
+      <!-- Mobile Search Button -->
+      <button class="mobile-search-btn" id="mobileSearchBtn">
+        <span id="mobileSearchIcon"></span>
+      </button>
+
       <!-- Loading skeleton -->
       <div class="navbar-skeleton" id="navbarSkeleton">
         <div class="skeleton-nav-icon"></div>
@@ -56,6 +63,33 @@
       </div>
     </div>
   </nav>
+
+  <!-- Mobile Search Overlay -->
+  <div class="mobile-search-overlay" id="mobileSearchOverlay">
+    <div class="mobile-search-header">
+      <button class="mobile-search-back" id="mobileSearchBack">
+        <span id="mobileSearchBackIcon"></span>
+      </button>
+      <div class="mobile-search-input-wrapper">
+        <input
+          type="text"
+          class="mobile-search-input"
+          id="mobileSearchInput"
+          placeholder="Search videos..."
+          autocomplete="off"
+        >
+        <button class="mobile-search-clear" id="mobileSearchClear">
+          <span id="mobileSearchClearIcon"></span>
+        </button>
+      </div>
+    </div>
+    <div class="mobile-search-results" id="mobileSearchResults">
+      <div class="mobile-search-placeholder">
+        <div id="mobileSearchPlaceholderIcon"></div>
+        <p>Search for videos</p>
+      </div>
+    </div>
+  </div>
 
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
@@ -250,12 +284,23 @@
         </div>
         <div class="form-group">
           <label class="form-label">Password</label>
-          <input
-            type="password"
-            class="form-input"
-            id="signInPassword"
-            required
-          >
+          <div style="position: relative;">
+            <input
+              type="password"
+              class="form-input"
+              id="signInPassword"
+              required
+              style="padding-right: 3rem;"
+            >
+            <button
+              type="button"
+              onclick="togglePasswordVisibility('signInPassword', this)"
+              style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 0.5rem;"
+              title="Show password"
+            >
+              <span id="signInPasswordToggleIcon">${getIcon('eye')}</span>
+            </button>
+          </div>
         </div>
         <button type="submit" class="btn-primary">Sign In</button>
         <div class="auth-footer">
@@ -286,12 +331,23 @@
         </div>
         <div class="form-group">
           <label class="form-label">Password</label>
-          <input
-            type="password"
-            class="form-input"
-            id="signUpPassword"
-            required
-          >
+          <div style="position: relative;">
+            <input
+              type="password"
+              class="form-input"
+              id="signUpPassword"
+              required
+              style="padding-right: 3rem;"
+            >
+            <button
+              type="button"
+              onclick="togglePasswordVisibility('signUpPassword', this)"
+              style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 0.5rem;"
+              title="Show password"
+            >
+              <span id="signUpPasswordToggleIcon">${getIcon('eye')}</span>
+            </button>
+          </div>
         </div>
         <button type="submit" class="btn-primary">Sign Up</button>
         <div class="auth-footer">
@@ -322,6 +378,7 @@
       initFilterDropdown();
       initSidebarNavigation();
       handleHashNavigation();
+      initMobileSearch();
     });
 
     // Handle hash-based navigation
@@ -452,7 +509,12 @@
           .slice(0, 24);
 
         if (trending.length === 0) {
-          trendingGrid.innerHTML = '<p class="secondary">No trending videos available</p>';
+          trendingGrid.innerHTML = `
+            <div style="text-align: center; padding: 4rem 2rem; color: var(--text-secondary);">
+              <p style="font-size: 18px; margin-bottom: 8px;">No trending videos yet</p>
+              <p style="font-size: 14px;">Videos will appear here as they trend</p>
+            </div>
+          `;
           return;
         }
 
@@ -817,7 +879,12 @@
         }
 
         if (filteredVideos.length === 0) {
-          videoGrid.innerHTML = '<p class="secondary" style="text-align: center; padding: 4rem 2rem; font-size: 1.1rem;">No videos found in this category. Be the first to upload!</p>';
+          videoGrid.innerHTML = `
+            <div style="text-align: center; padding: 4rem 2rem; color: var(--text-secondary);">
+              <p style="font-size: 18px; margin-bottom: 8px;">No videos found in this category</p>
+              <p style="font-size: 14px;">Be the first to upload!</p>
+            </div>
+          `;
           return;
         }
 
@@ -906,11 +973,137 @@
         showNotification('Error searching videos', 'error');
       }
     }
+
+    // Mobile Search Functions
+    function initMobileSearch() {
+      const mobileSearchBtn = document.getElementById('mobileSearchBtn');
+      const mobileSearchIcon = document.getElementById('mobileSearchIcon');
+      const mobileSearchOverlay = document.getElementById('mobileSearchOverlay');
+      const mobileSearchBack = document.getElementById('mobileSearchBack');
+      const mobileSearchBackIcon = document.getElementById('mobileSearchBackIcon');
+      const mobileSearchInput = document.getElementById('mobileSearchInput');
+      const mobileSearchClear = document.getElementById('mobileSearchClear');
+      const mobileSearchClearIcon = document.getElementById('mobileSearchClearIcon');
+      const mobileSearchResults = document.getElementById('mobileSearchResults');
+      const mobileSearchPlaceholderIcon = document.getElementById('mobileSearchPlaceholderIcon');
+
+      // Load icons
+      if (mobileSearchIcon) mobileSearchIcon.innerHTML = getIcon('search');
+      if (mobileSearchBackIcon) mobileSearchBackIcon.innerHTML = getIcon('chevron');
+      if (mobileSearchClearIcon) mobileSearchClearIcon.innerHTML = getIcon('close');
+      if (mobileSearchPlaceholderIcon) mobileSearchPlaceholderIcon.innerHTML = getIcon('search');
+
+      // Open mobile search
+      if (mobileSearchBtn) {
+        mobileSearchBtn.addEventListener('click', () => {
+          mobileSearchOverlay.classList.add('active');
+          setTimeout(() => mobileSearchInput.focus(), 100);
+        });
+      }
+
+      // Close mobile search
+      if (mobileSearchBack) {
+        mobileSearchBack.addEventListener('click', () => {
+          mobileSearchOverlay.classList.remove('active');
+          mobileSearchInput.value = '';
+          mobileSearchClear.classList.remove('visible');
+          showMobilePlaceholder();
+        });
+      }
+
+      // Clear search input
+      if (mobileSearchClear) {
+        mobileSearchClear.addEventListener('click', () => {
+          mobileSearchInput.value = '';
+          mobileSearchClear.classList.remove('visible');
+          mobileSearchInput.focus();
+          showMobilePlaceholder();
+        });
+      }
+
+      // Handle search input
+      if (mobileSearchInput) {
+        mobileSearchInput.addEventListener('input', async (e) => {
+          const query = e.target.value.trim();
+
+          if (query) {
+            mobileSearchClear.classList.add('visible');
+            await performMobileSearch(query);
+          } else {
+            mobileSearchClear.classList.remove('visible');
+            showMobilePlaceholder();
+          }
+        });
+
+        // Search on enter
+        mobileSearchInput.addEventListener('keypress', async (e) => {
+          if (e.key === 'Enter') {
+            const query = e.target.value.trim();
+            if (query) {
+              mobileSearchOverlay.classList.remove('active');
+              window.location.href = `index.html?search=${encodeURIComponent(query)}`;
+            }
+          }
+        });
+      }
+    }
+
+    function showMobilePlaceholder() {
+      const mobileSearchResults = document.getElementById('mobileSearchResults');
+      mobileSearchResults.innerHTML = `
+        <div class="mobile-search-placeholder">
+          <div id="placeholderIconTemp"></div>
+          <p>Search for videos</p>
+        </div>
+      `;
+      document.getElementById('placeholderIconTemp').innerHTML = getIcon('search');
+    }
+
+    async function performMobileSearch(query) {
+      const mobileSearchResults = document.getElementById('mobileSearchResults');
+
+      try {
+        mobileSearchResults.innerHTML = '<div style="text-align: center; padding: 2rem;"><p class="secondary">Searching...</p></div>';
+
+        const results = await searchVideos(query);
+
+        if (results.length === 0) {
+          mobileSearchResults.innerHTML = `
+            <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+              <p>No results found for "${escapeHtml(query)}"</p>
+            </div>
+          `;
+          return;
+        }
+
+        let html = '<div style="padding: 8px 0;">';
+        results.slice(0, 10).forEach(video => {
+          const thumbnailUrl = video.thumbnail_url || 'https://via.placeholder.com/168x94?text=No+Thumbnail';
+          html += `
+            <a href="watch.html?v=${video.id}" class="history-item" style="text-decoration: none; color: inherit; display: grid; grid-template-columns: 168px 1fr; gap: 12px; padding: 8px; border-radius: 8px; margin-bottom: 8px;">
+              <div style="position: relative;">
+                <img src="${thumbnailUrl}" alt="${escapeHtml(video.title)}" style="width: 100%; height: 94px; object-fit: cover; border-radius: 8px;">
+                ${video.duration ? `<div class="video-duration" style="position: absolute; bottom: 4px; right: 4px; background: rgba(0,0,0,0.8); color: white; padding: 2px 4px; border-radius: 2px; font-size: 12px;">${video.duration}</div>` : ''}
+              </div>
+              <div>
+                <div style="font-size: 14px; font-weight: 500; margin-bottom: 4px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${escapeHtml(video.title)}</div>
+                <div style="font-size: 12px; color: var(--text-secondary);">
+                  ${formatNumber(video.views_count || 0)} views • ${timeSince(new Date(video.created_at))} ago
+                </div>
+              </div>
+            </a>
+          `;
+        });
+        html += '</div>';
+
+        mobileSearchResults.innerHTML = html;
+      } catch (error) {
+        console.error('Mobile search error:', error);
+        mobileSearchResults.innerHTML = '<div style="text-align: center; padding: 2rem;"><p class="secondary">Error searching videos</p></div>';
+      }
+    }
   </script>
 
-  <!-- Adsterra Scripts -->
-  <script async="async" data-cfasync="false" src="https://pl28394065.effectivegatecpm.com/ce630968429585fc33b1cd2e0f35d06a/invoke.js"></script>
-  <div id="container-ce630968429585fc33b1cd2e0f35d06a"></div>
-  <script src="https://pl28394078.effectivegatecpm.com/30/7d/66/307d667458334a8e0ab5a0293231b8b3.js"></script>
+  <!-- Ads removed from home page -->
 </body>
 </html>

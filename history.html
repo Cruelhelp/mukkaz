@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://pl28394065.effectivegatecpm.com https://pl28394078.effectivegatecpm.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https:; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://pl28394065.effectivegatecpm.com https://pl28394078.effectivegatecpm.com https://va.vercel-scripts.com https://cdn.growthbook.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https:; connect-src 'self' https://*.supabase.co https://vitals.vercel-insights.com https://cdn.growthbook.io; object-src 'none'; base-uri 'self';">
   <title>Watch History - Mukkaz</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <script src="config.local.js" onerror="console.warn('config.local.js not found - using defaults')"></script>
@@ -13,6 +13,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <script src="age-gate.js"></script>
   <script src="components.js"></script>
+  <script src="analytics.js"></script>
+  <script src="growthbook.js"></script>
 </head>
 <body>
   <!-- Navigation Bar -->
@@ -387,9 +389,6 @@
     window.removeHistoryItem = removeHistoryItem;
   </script>
 
-  <!-- Adsterra Scripts -->
-  <script async="async" data-cfasync="false" src="https://pl28394065.effectivegatecpm.com/ce630968429585fc33b1cd2e0f35d06a/invoke.js"></script>
-  <div id="container-ce630968429585fc33b1cd2e0f35d06a"></div>
-  <script src="https://pl28394078.effectivegatecpm.com/30/7d/66/307d667458334a8e0ab5a0293231b8b3.js"></script>
+  <!-- Ads removed -->
 </body>
 </html>
