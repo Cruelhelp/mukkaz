@@ -1,32 +1,52 @@
-// Vercel serverless function to handle direct video uploads to Cloudflare Stream.
-// This endpoint proxies the incoming multipart/form-data request to the
-// Cloudflare Stream API. Do not expose your API token on the client.
+// Vercel serverless function to proxy uploads to Cloudflare Stream
+// IMPORTANT: bodyParser is disabled so multipart data streams correctly
+
+export const config = {
+  api: {
+    bodyParser: false
+  }
+};
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ success: false, errors: [{ message: 'Method not allowed' }] });
+    return res.status(405).json({
+      success: false,
+      errors: [{ message: 'Method not allowed' }]
+    });
   }
+
   try {
-    // Forward the raw body (a Readable stream) to Cloudflare. Vercel will
-    // stream the body for us without parsing the form data. The API token is
-    // set via an environment variable in Vercel settings.
     const cfResponse = await fetch(
       `https://api.cloudflare.com/client/v4/accounts/${process.env.CF_ACCOUNT_ID}/stream`,
       {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${process.env.CF_STREAM_TOKEN}`
+          // ❌ DO NOT set Content-Type manually
         },
         body: req
       }
     );
 
-    const data = await cfResponse.json();
-    if (!cfResponse.ok || !data.success) {
-      return res.status(400).json(data);
+    const text = await cfResponse.text();
+    let data;
+
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { success: false, errors: [{ message: text }] };
     }
+
+    if (!cfResponse.ok || !data.success) {
+      return res.status(cfResponse.status).json(data);
+    }
+
     return res.status(200).json(data);
   } catch (err) {
-    return res.status(500).json({ success: false, errors: [{ message: err.message }] });
+    console.error('Cloudflare upload error:', err);
+    return res.status(500).json({
+      success: false,
+      errors: [{ message: err.message || 'Internal server error' }]
+    });
   }
 }
