@@ -9,7 +9,7 @@ async function uploadToCloudflareStream(videoFile, metadata = {}, onProgress = n
   if (
     !window.CLOUDFLARE_CONFIG ||
     !CLOUDFLARE_CONFIG.accountId ||
-    CLOUDFLARE_CONFIG.accountId === 'YOUR_ACCOUNT_ID'
+    CLOUDFLARE_CONFIG.accountId === '13faa7514f6b0dfd763ca79c8a3cc3f4'
   ) {
     throw new Error('Cloudflare Account ID not configured.');
   }
@@ -207,3 +207,4 @@ window.getHLSUrl = getHLSUrl;
 window.getDASHUrl = getDASHUrl;
 window.updateStreamMetadata = updateStreamMetadata;
 window.uploadFromURL = uploadFromURL;
+
