@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://pl28394065.effectivegatecpm.com https://pl28394078.effectivegatecpm.com https://preferencenail.com https://va.vercel-scripts.com https://cdn.growthbook.io https://*.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https: https://videodelivery.net https://cloudflarestream.com; connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net https://api.cloudflare.com https://videodelivery.net https://embed.cloudflarestream.com https://vitals.vercel-insights.com https://cdn.growthbook.io https://*.com; frame-src 'self' https://embed.cloudflarestream.com https://iframe.videodelivery.net; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://pl28394065.effectivegatecpm.com https://pl28394078.effectivegatecpm.com https://preferencenail.com https://va.vercel-scripts.com https://cdn.growthbook.io https://*.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https: https://videodelivery.net https://cloudflarestream.com; connect-src 'self' https://*.supabase.co https://api.ipify.org https://cdn.jsdelivr.net https://api.cloudflare.com https://videodelivery.net https://embed.cloudflarestream.com https://vitals.vercel-insights.com https://cdn.growthbook.io https://*.com; frame-src 'self' https://embed.cloudflarestream.com https://iframe.videodelivery.net; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
   <title>Mukkaz - Home</title>
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <script src="config.local.js" onerror="console.warn('config.local.js not found - using defaults')"></script>
-  <script src="config.js"></script>
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="youtube-redesign.css">
+  <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+  <script src="js/config.local.js" onerror="console.warn('config.local.js not found - using defaults')"></script>
+  <script src="js/config.js"></script>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/youtube-redesign.css">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-  <script src="age-gate.js"></script>
-  <script src="components.js"></script>
-  <script src="analytics.js"></script>
-  <script src="growthbook.js"></script>
+  <script src="js/age-gate.js"></script>
+  <script src="js/components.js"></script>
+  <script src="js/analytics.js" defer></script>
+  <script src="js/growthbook.js" defer></script>
 </head>
 <body>
   <!-- Navigation Bar -->
@@ -24,7 +24,7 @@
         <span id="hamburgerIcon"></span>
       </button>
       <a href="index.html" class="logo">
-        <img src="logo.png" alt="Mukkaz" onerror="this.style.display='none'">
+        <img src="assets/logo.png" alt="Mukkaz" onerror="this.style.display='none'">
       </a>
     </div>
 
@@ -131,26 +131,12 @@
         </svg>
       </button>
       <div class="category-filter-bar-horizontal" id="categoryBar">
-        <button class="category-btn active" data-category="all">All</button>
-        <button class="category-btn" data-category="big_batty">Big Batty</button>
-        <button class="category-btn" data-category="phat_pussy">Phat Pussy</button>
-        <button class="category-btn" data-category="backshot">Backshot</button>
-        <button class="category-btn" data-category="hood_gyal">Hood Gyal</button>
-        <button class="category-btn" data-category="tight_pussy">Tight Pussy</button>
-        <button class="category-btn" data-category="kingston">Kingston</button>
-        <button class="category-btn" data-category="st_andrew">St. Andrew</button>
-        <button class="category-btn" data-category="st_catherine">St. Catherine</button>
-        <button class="category-btn" data-category="portmore">Portmore</button>
-        <button class="category-btn" data-category="spanish_town">Spanish Town</button>
-        <button class="category-btn" data-category="montego_bay">Montego Bay</button>
-        <button class="category-btn" data-category="mandeville">Mandeville</button>
-        <button class="category-btn" data-category="ocho_rios">Ocho Rios</button>
-        <button class="category-btn" data-category="bumper">Bumper</button>
-        <button class="category-btn" data-category="cocky">Cocky</button>
-        <button class="category-btn" data-category="fuck">Fuck</button>
-        <button class="category-btn" data-category="breed">Breed</button>
-        <button class="category-btn" data-category="suck">Suck</button>
-        <button class="category-btn" data-category="badman">Badman</button>
+        <div class="category-skeleton-pill skeleton"></div>
+        <div class="category-skeleton-pill skeleton"></div>
+        <div class="category-skeleton-pill skeleton"></div>
+        <div class="category-skeleton-pill skeleton"></div>
+        <div class="category-skeleton-pill skeleton"></div>
+        <div class="category-skeleton-pill skeleton"></div>
       </div>
       <button class="category-scroll-btn category-scroll-right" id="scrollRight">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
@@ -259,20 +245,32 @@
   <!-- Auth Modal -->
   <div class="modal-overlay hidden" id="authModal">
     <div class="modal">
-      <div class="modal-header">
-        <img src="logo.png" alt="Mukkaz" class="modal-logo" onerror="this.style.display='none'">
-        <h2 class="modal-title" id="authModalTitle">Welcome to Mukkaz</h2>
+      <div class="modal-header auth-modal-header">
+        <div class="auth-brand">
+          <img src="assets/logo.png" alt="Mukkaz" class="modal-logo auth-logo" onerror="this.style.display='none'">
+          <h2 class="modal-title" id="authModalTitle">Welcome to Mukkaz</h2>
+          <p class="auth-subtitle">Join the community and start sharing your videos today</p>
+        </div>
         <button class="modal-close" id="closeAuthModal">
           <span id="closeIcon"></span>
         </button>
       </div>
 
-      <p class="secondary" style="text-align: center; margin-bottom: 1.5rem; font-size: 0.95rem;">
-        Join the community and start sharing your videos today
-      </p>
-
       <!-- Sign In Form -->
       <form class="auth-form" id="signInForm">
+        <button type="button" class="btn-secondary btn-google" id="signInGoogleBtn">
+          <span class="google-icon" aria-hidden="true">
+            <svg viewBox="0 0 48 48" width="20" height="20">
+              <path fill="#EA4335" d="M24 9.5c3.54 0 6.7 1.22 9.18 3.62l6.86-6.86C35.9 2.42 30.38 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.2C12.4 13.7 17.78 9.5 24 9.5z"/>
+              <path fill="#4285F4" d="M46.1 24.5c0-1.67-.15-3.27-.42-4.82H24v9.13h12.47c-.54 2.9-2.18 5.36-4.6 7.04l7.1 5.5c4.16-3.84 6.13-9.5 6.13-16.85z"/>
+              <path fill="#FBBC05" d="M10.54 28.58a14.5 14.5 0 0 1-.76-4.58c0-1.6.28-3.14.76-4.58l-7.98-6.2A23.96 23.96 0 0 0 0 24c0 3.87.92 7.52 2.56 10.78l7.98-6.2z"/>
+              <path fill="#34A853" d="M24 48c6.48 0 11.92-2.14 15.9-5.8l-7.1-5.5c-1.96 1.32-4.46 2.1-8.8 2.1-6.22 0-11.6-4.2-13.46-9.92l-7.98 6.2C6.51 42.62 14.62 48 24 48z"/>
+              <path fill="none" d="M0 0h48v48H0z"/>
+            </svg>
+          </span>
+          Continue with Google
+        </button>
+        <div class="auth-divider"><span>or</span></div>
         <div class="form-group">
           <label class="form-label">Email</label>
           <input
@@ -298,7 +296,7 @@
               style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 0.5rem;"
               title="Show password"
             >
-              <span id="signInPasswordToggleIcon">${getIcon('eye')}</span>
+              <span id="signInPasswordToggleIcon"></span>
             </button>
           </div>
         </div>
@@ -311,6 +309,19 @@
 
       <!-- Sign Up Form -->
       <form class="auth-form hidden" id="signUpForm">
+        <button type="button" class="btn-secondary btn-google" id="signUpGoogleBtn">
+          <span class="google-icon" aria-hidden="true">
+            <svg viewBox="0 0 48 48" width="20" height="20">
+              <path fill="#EA4335" d="M24 9.5c3.54 0 6.7 1.22 9.18 3.62l6.86-6.86C35.9 2.42 30.38 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.2C12.4 13.7 17.78 9.5 24 9.5z"/>
+              <path fill="#4285F4" d="M46.1 24.5c0-1.67-.15-3.27-.42-4.82H24v9.13h12.47c-.54 2.9-2.18 5.36-4.6 7.04l7.1 5.5c4.16-3.84 6.13-9.5 6.13-16.85z"/>
+              <path fill="#FBBC05" d="M10.54 28.58a14.5 14.5 0 0 1-.76-4.58c0-1.6.28-3.14.76-4.58l-7.98-6.2A23.96 23.96 0 0 0 0 24c0 3.87.92 7.52 2.56 10.78l7.98-6.2z"/>
+              <path fill="#34A853" d="M24 48c6.48 0 11.92-2.14 15.9-5.8l-7.1-5.5c-1.96 1.32-4.46 2.1-8.8 2.1-6.22 0-11.6-4.2-13.46-9.92l-7.98 6.2C6.51 42.62 14.62 48 24 48z"/>
+              <path fill="none" d="M0 0h48v48H0z"/>
+            </svg>
+          </span>
+          Continue with Google
+        </button>
+        <div class="auth-divider"><span>or</span></div>
         <div class="form-group">
           <label class="form-label">Username</label>
           <input
@@ -345,7 +356,7 @@
               style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 0.5rem;"
               title="Show password"
             >
-              <span id="signUpPasswordToggleIcon">${getIcon('eye')}</span>
+              <span id="signUpPasswordToggleIcon"></span>
             </button>
           </div>
         </div>
@@ -360,12 +371,13 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="icons.js"></script>
-  <script src="utils.js"></script>
-  <script src="supabase.js"></script>
-  <script src="app.js"></script>
+  <script src="js/icons.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/app.js"></script>
   <script>
     let currentUser = null;
+    let displayOptions = loadDisplayOptions();
 
     // Initialize home page
     document.addEventListener('DOMContentLoaded', async () => {
@@ -504,9 +516,10 @@
 
       try {
         const videos = await getVideos();
-        const trending = videos
+        let trending = videos
           .sort((a, b) => (b.views_count || 0) - (a.views_count || 0))
           .slice(0, 24);
+        trending = sortVideos(trending);
 
         if (trending.length === 0) {
           trendingGrid.innerHTML = `
@@ -523,6 +536,7 @@
           const card = createVideoCard(video, 'grid');
           trendingGrid.appendChild(card);
         });
+        applyDisplayOptions();
       } catch (error) {
         console.error('Error loading trending:', error);
         trendingGrid.innerHTML = '<p class="secondary">Error loading trending videos</p>';
@@ -774,32 +788,144 @@
       // Handle filter options
       const showThumbnails = document.getElementById('filterShowThumbnails');
       const compactView = document.getElementById('filterCompactView');
+      const autoplay = document.getElementById('filterAutoplay');
+      const sortRadios = document.querySelectorAll('input[name="sortBy"]');
+
+      if (showThumbnails) showThumbnails.checked = !!displayOptions.showThumbnails;
+      if (compactView) compactView.checked = !!displayOptions.compactView;
+      if (autoplay) autoplay.checked = !!displayOptions.autoplay;
+      if (sortRadios.length) {
+        const selected = document.querySelector(`input[name="sortBy"][value="${displayOptions.sortBy}"]`);
+        if (selected) selected.checked = true;
+      }
 
       if (showThumbnails) {
         showThumbnails.addEventListener('change', (e) => {
-          const videoGrid = document.getElementById('videoGrid');
-          if (e.target.checked) {
-            videoGrid.classList.remove('hide-thumbnails');
-          } else {
-            videoGrid.classList.add('hide-thumbnails');
-          }
+          displayOptions.showThumbnails = e.target.checked;
+          saveDisplayOptions();
+          applyDisplayOptions();
         });
       }
 
       if (compactView) {
         compactView.addEventListener('change', (e) => {
-          const videoGrid = document.getElementById('videoGrid');
-          if (e.target.checked) {
-            videoGrid.classList.add('compact-view');
-          } else {
-            videoGrid.classList.remove('compact-view');
-          }
+          displayOptions.compactView = e.target.checked;
+          saveDisplayOptions();
+          applyDisplayOptions();
+        });
+      }
+
+      if (autoplay) {
+        autoplay.addEventListener('change', (e) => {
+          displayOptions.autoplay = e.target.checked;
+          saveDisplayOptions();
+          applyDisplayOptions();
+        });
+      }
+
+      if (sortRadios.length) {
+        sortRadios.forEach(radio => {
+          radio.addEventListener('change', (e) => {
+            displayOptions.sortBy = e.target.value;
+            saveDisplayOptions();
+            const category = getActiveCategory();
+            loadVideos(category);
+            if (!document.getElementById('trendingSection')?.classList.contains('hidden')) {
+              loadTrendingContent();
+            }
+          });
         });
       }
     }
 
+    function loadDisplayOptions() {
+      const defaults = {
+        showThumbnails: true,
+        compactView: false,
+        autoplay: true,
+        sortBy: 'newest'
+      };
+      try {
+        const stored = JSON.parse(localStorage.getItem('mukkazDisplayOptions') || '{}');
+        return { ...defaults, ...stored };
+      } catch (error) {
+        return defaults;
+      }
+    }
+
+    function saveDisplayOptions() {
+      try {
+        localStorage.setItem('mukkazDisplayOptions', JSON.stringify(displayOptions));
+      } catch (error) {
+        console.warn('Unable to save display options', error);
+      }
+    }
+
+    function getActiveCategory() {
+      const activeBtn = document.querySelector('.category-filter-bar-horizontal .category-btn.active');
+      return activeBtn?.dataset.category || 'all';
+    }
+
+    function sortVideos(videos) {
+      const sorted = [...videos];
+      switch (displayOptions.sortBy) {
+        case 'popular':
+        case 'views':
+          sorted.sort((a, b) => (b.views_count || 0) - (a.views_count || 0));
+          break;
+        case 'newest':
+        default:
+          sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+          break;
+      }
+      return sorted;
+    }
+
+    function setAutoplayPreviews(container, enabled) {
+      if (!container) return;
+      const previews = container.querySelectorAll('.video-preview-hover');
+      previews.forEach(video => {
+        if (enabled) {
+          video.muted = true;
+          const playPromise = video.play();
+          if (playPromise) {
+            playPromise.catch(() => {});
+          }
+        } else {
+          video.pause();
+          video.currentTime = 0;
+        }
+      });
+    }
+
+    function applyDisplayOptions() {
+      const grids = [
+        document.getElementById('videoGrid'),
+        document.getElementById('trendingGrid')
+      ].filter(Boolean);
+
+      grids.forEach(grid => {
+        grid.classList.toggle('hide-thumbnails', !displayOptions.showThumbnails);
+        grid.classList.toggle('compact-view', displayOptions.compactView);
+        grid.classList.toggle('autoplay-enabled', displayOptions.autoplay);
+        setAutoplayPreviews(grid, displayOptions.autoplay);
+      });
+    }
+
     // Load most used tags dynamically
     async function loadMostUsedTags() {
+      const categoryBar = document.getElementById('categoryBar');
+      if (categoryBar) {
+        categoryBar.innerHTML = `
+          <div class="category-skeleton-pill skeleton"></div>
+          <div class="category-skeleton-pill skeleton"></div>
+          <div class="category-skeleton-pill skeleton"></div>
+          <div class="category-skeleton-pill skeleton"></div>
+          <div class="category-skeleton-pill skeleton"></div>
+          <div class="category-skeleton-pill skeleton"></div>
+        `;
+      }
+
       try {
         const videos = await getVideos();
 
@@ -826,7 +952,6 @@
           .map(([tag]) => tag);
 
         // Update category bar with most used tags
-        const categoryBar = document.getElementById('categoryBar');
         if (categoryBar && sortedTags.length > 0) {
           // Keep "All" button, replace rest with most used tags
           categoryBar.innerHTML = '<button class="category-btn active" data-category="all">All</button>';
@@ -841,9 +966,14 @@
 
           // Re-initialize category filters after updating
           setTimeout(() => initHomeCategoryFilters(), 100);
+        } else if (categoryBar) {
+          categoryBar.innerHTML = '<button class="category-btn active" data-category="all">All</button>';
         }
       } catch (error) {
         console.error('Error loading most used tags:', error);
+        if (categoryBar) {
+          categoryBar.innerHTML = '<button class="category-btn active" data-category="all">All</button>';
+        }
       }
     }
 
@@ -892,10 +1022,15 @@
         videoGrid.innerHTML = '';
 
         // Use component library to create video cards
-        filteredVideos.forEach(video => {
+        const sortedVideos = sortVideos(filteredVideos);
+        sortedVideos.forEach(video => {
           const card = createVideoCard(video, 'grid');
           videoGrid.appendChild(card);
         });
+        applyDisplayOptions();
+        if (typeof renderHomeAdSlot === 'function') {
+          renderHomeAdSlot();
+        }
 
         // Initialize bookmark states if user is logged in
         if (currentUser) {
@@ -953,6 +1088,7 @@
           const card = createVideoCard(video, 'grid');
           videoGrid.appendChild(card);
         });
+        applyDisplayOptions();
 
         // Initialize bookmark states if user is logged in
         if (currentUser) {

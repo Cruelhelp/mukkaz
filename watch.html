@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://vjs.zencdn.net https://pl28394065.effectivegatecpm.com https://pl28394078.effectivegatecpm.com https://va.vercel-scripts.com https://cdn.growthbook.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://vjs.zencdn.net; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https: https://videodelivery.net https://cloudflarestream.com; connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net https://api.cloudflare.com https://videodelivery.net https://embed.cloudflarestream.com https://www.effectivegatecpm.com https://vitals.vercel-insights.com https://cdn.growthbook.io; frame-src 'self' https://embed.cloudflarestream.com https://iframe.videodelivery.net; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://vjs.zencdn.net https://pl28394065.effectivegatecpm.com https://pl28394078.effectivegatecpm.com https://va.vercel-scripts.com https://cdn.growthbook.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://vjs.zencdn.net; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https: https://videodelivery.net https://cloudflarestream.com; connect-src 'self' https://*.supabase.co https://api.ipify.org https://cdn.jsdelivr.net https://api.cloudflare.com https://videodelivery.net https://embed.cloudflarestream.com https://www.effectivegatecpm.com https://vitals.vercel-insights.com https://cdn.growthbook.io; frame-src 'self' https://embed.cloudflarestream.com https://iframe.videodelivery.net; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
   <title>Watch - Mukkaz</title>
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <script src="config.local.js" onerror="console.warn('config.local.js not found - using defaults')"></script>
-  <script src="config.js"></script>
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="youtube-redesign.css">
+  <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+  <script src="js/config.local.js" onerror="console.warn('config.local.js not found - using defaults')"></script>
+  <script src="js/config.js"></script>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/youtube-redesign.css">
   <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link href="https://vjs.zencdn.net/8.6.1/video-js.css" rel="stylesheet">
-  <script src="age-gate.js"></script>
-  <script src="components.js"></script>
-  <script src="analytics.js"></script>
-  <script src="growthbook.js"></script>
+  <script src="js/age-gate.js"></script>
+  <script src="js/components.js"></script>
+  <script src="js/analytics.js" defer></script>
+  <script src="js/growthbook.js" defer></script>
 </head>
 <body>
   <!-- Navigation Bar -->
@@ -25,7 +25,7 @@
         <span id="hamburgerIcon"></span>
       </button>
       <a href="index.html" class="logo">
-        <img src="logo.png" alt="Mukkaz" onerror="this.style.display='none'">
+        <img src="assets/logo.png" alt="Mukkaz" onerror="this.style.display='none'">
       </a>
     </div>
 
@@ -104,7 +104,7 @@
         </div>
 
         <!-- Ad Banner Below Video -->
-        <div style="margin: 16px 0; text-align: center; background: var(--bg-secondary); padding: 8px; border-radius: 8px;">
+        <div class="watch-ad-slot" id="watchAdSlot">
           <div id="container-ce630968429585fc33b1cd2e0f35d06a"></div>
         </div>
 
@@ -114,7 +114,7 @@
         </div>
 
         <!-- Video Title -->
-        <h1 class="watch-video-title hidden" id="videoTitle">Loading...</h1>
+        <h1 class="watch-video-title hidden" id="videoTitle"></h1>
 
         <!-- Channel Skeleton -->
         <div class="watch-channel-skeleton" id="channelSkeleton">
@@ -134,23 +134,24 @@
 
         <!-- Channel + Actions Row -->
         <div class="watch-top-row hidden" id="channelRow">
-          <div class="watch-channel-info">
-            <a href="#" id="channelLink">
-              <img src="" alt="Channel" class="watch-avatar avatar-loading" id="channelAvatar">
-            </a>
-            <div>
-              <div class="watch-channel-name" id="channelName">Loading...</div>
-              <div class="watch-subscribers" id="subscriberCount">0 subscribers</div>
+        <div class="watch-channel-info">
+          <a href="#" id="channelLink">
+            <div class="avatar-badge-wrapper watch-avatar-wrapper" id="channelAvatarWrapper">
+              <img src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="Channel" class="watch-avatar avatar-loading" id="channelAvatar">
             </div>
+          </a>
+          <div>
+            <div class="watch-channel-name" id="channelName"></div>
+            <div class="watch-subscribers" id="subscriberCount">0 subscribers</div>
           </div>
+          <div id="subscribeContainer"></div>
+        </div>
 
-          <div class="watch-action-group">
-            <div id="subscribeContainer"></div>
-
-            <button class="watch-action-btn" id="likeBtn">
-              <span id="likeIcon"></span>
-              <span id="likeCount">0</span>
-            </button>
+        <div class="watch-action-group">
+          <button class="watch-action-btn" id="likeBtn">
+            <span id="likeIcon"></span>
+            <span id="likeCount">0</span>
+          </button>
 
             <button class="watch-action-btn" id="dislikeBtn">
               <span id="dislikeIcon"></span>
@@ -159,6 +160,11 @@
             <button class="watch-action-btn" id="shareBtn">
               <span id="shareIcon"></span>
               <span>Share</span>
+            </button>
+
+            <button class="watch-action-btn" id="reportBtn">
+              <span id="reportIcon"></span>
+              <span>Report</span>
             </button>
 
             <button class="watch-action-btn" id="bookmarkBtn">
@@ -181,7 +187,8 @@
           <div class="watch-desc-meta">
             <span id="videoViews">0 views</span> • <span id="videoDate">Just now</span>
           </div>
-          <div id="videoDescriptionText">Loading...</div>
+          <div id="videoDescriptionText"></div>
+          <button class="watch-description-toggle" id="descriptionToggle" type="button">Show more</button>
         </div>
 
         <!-- Comments Section -->
@@ -189,7 +196,9 @@
           <div class="watch-comments-header" id="commentsHeader">0 Comments</div>
 
           <div class="watch-comment-box" id="addCommentSection" style="display: none;">
-            <img src="" alt="Your avatar" class="watch-avatar avatar-loading" id="userCommentAvatar">
+            <div class="avatar-badge-wrapper watch-avatar-wrapper" id="userCommentAvatarWrapper">
+              <img src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="Your avatar" class="watch-avatar avatar-loading" id="userCommentAvatar">
+            </div>
             <div class="watch-comment-input-wrapper">
               <textarea
                 class="watch-comment-input"
@@ -265,7 +274,7 @@
   <div class="modal-overlay hidden" id="authModal">
     <div class="modal">
       <div class="modal-header">
-        <img src="logo.png" alt="Mukkaz" class="modal-logo" onerror="this.style.display='none'">
+        <img src="assets/logo.png" alt="Mukkaz" class="modal-logo" onerror="this.style.display='none'">
         <h2 class="modal-title" id="authModalTitle">Welcome to Mukkaz</h2>
         <button class="modal-close" id="closeAuthModal">
           <span id="closeIcon"></span>
@@ -314,17 +323,56 @@
     </div>
   </div>
 
+  <!-- Report Modal -->
+  <div class="modal-overlay" id="reportModalOverlay" style="display: none;">
+    <div class="modal">
+      <div class="modal-header" style="align-items: flex-start;">
+        <h2 class="modal-title" style="-webkit-text-fill-color: unset; color: #fff;">Report video</h2>
+        <button class="modal-close" type="button" id="closeReportModal">✕</button>
+      </div>
+      <form id="reportForm">
+        <div class="form-group">
+          <label class="form-label">Reported user</label>
+          <input class="form-input" id="reportOwner" type="text" readonly>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Reason</label>
+          <select class="form-input" id="reportReason" required>
+            <option value="">Select a reason</option>
+            <option value="gay_porn">Gay porn/content</option>
+            <option value="spam">Spam or misleading</option>
+            <option value="copyright">Copyright infringement</option>
+            <option value="other_nationality_porn">Other nationality porn</option>
+            <option value="murder_gore">Murder/gore content</option>
+            <option value="child_porn">Child porn</option>
+            <option value="rape">Rape</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Details (optional)</label>
+          <textarea class="form-input" id="reportDetails" rows="4" placeholder="Add more context..."></textarea>
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+          <button type="button" class="btn-secondary" id="cancelReportBtn" style="flex: 1;">Cancel</button>
+          <button type="submit" class="btn-primary" style="flex: 1;">Submit report</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://vjs.zencdn.net/8.6.1/video.min.js"></script>
-  <script src="icons.js"></script>
-  <script src="utils.js"></script>
-  <script src="supabase.js"></script>
-  <script src="app.js"></script>
+  <script src="js/icons.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/app.js"></script>
   <script>
     let currentVideo = null;
     let currentUser = null;
     let player = null;
+    let commentReactionState = new Map();
 
     document.addEventListener('DOMContentLoaded', async () => {
       await initializeApp();
@@ -347,6 +395,7 @@
       document.getElementById('dislikeIcon').innerHTML = getIcon('dislike');
       document.getElementById('shareIcon').innerHTML = getIcon('share');
       document.getElementById('bookmarkIcon').innerHTML = getIcon('bookmark');
+      document.getElementById('reportIcon').innerHTML = getIcon('flag');
 
       await loadVideo();
     });
@@ -372,6 +421,7 @@
 
           // Load user avatar with loading state
           const userAvatar = document.getElementById('userCommentAvatar');
+          const userAvatarWrapper = document.getElementById('userCommentAvatarWrapper');
           const userAvatarUrl = profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.email}`;
           userAvatar.onload = () => userAvatar.classList.remove('avatar-loading');
           userAvatar.onerror = () => {
@@ -379,6 +429,7 @@
             userAvatar.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.email || 'default'}`;
           };
           userAvatar.src = userAvatarUrl;
+          applyAvatarBadge(userAvatarWrapper, profile);
 
           // Check bookmark status
           const bookmarked = await isBookmarked(videoId);
@@ -388,7 +439,14 @@
         }
       } catch (error) {
         console.error('Error loading video:', error);
-        showNotification('Error loading video', 'error');
+        if (error.message && error.message.toLowerCase().includes('hidden')) {
+          showNotification('This video is hidden from your feed.', 'info');
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 800);
+        } else {
+          showNotification('Error loading video', 'error');
+        }
       }
     }
 
@@ -400,12 +458,14 @@
       document.getElementById('videoViews').textContent = `${formatNumber(video.views_count || 0)} views`;
       document.getElementById('videoDate').textContent = timeSince(new Date(video.created_at));
       document.getElementById('videoDescriptionText').innerHTML = video.description || 'No description available.';
+      setupDescriptionToggle();
       document.getElementById('channelName').textContent = profile.username || 'Unknown';
       document.getElementById('subscriberCount').textContent = `${formatNumber(profile.subscribers_count || 0)} subscribers`;
       document.getElementById('channelLink').href = `profile.html?id=${video.user_id}`;
 
       // Load channel avatar and show content when loaded
       const channelAvatar = document.getElementById('channelAvatar');
+      const channelAvatarWrapper = document.getElementById('channelAvatarWrapper');
       const avatarUrl = profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.username}`;
 
       channelAvatar.onload = () => {
@@ -432,12 +492,25 @@
       };
 
       channelAvatar.src = avatarUrl;
+      applyAvatarBadge(channelAvatarWrapper, profile);
 
       // Add subscribe button
-      if (currentUser && currentUser.id !== video.user_id) {
-        const subscribed = await isSubscribed(video.user_id);
-        const subscribeBtn = createSubscribeButton(video.user_id, subscribed);
-        document.getElementById('subscribeContainer').appendChild(subscribeBtn);
+      const subscribeContainer = document.getElementById('subscribeContainer');
+      if (subscribeContainer) {
+        subscribeContainer.innerHTML = '';
+        if (currentUser && currentUser.id !== video.user_id) {
+          const subscribed = await isSubscribed(video.user_id);
+          const subscribeBtn = createSubscribeButton(video.user_id, subscribed);
+          subscribeContainer.appendChild(subscribeBtn);
+        } else if (!currentUser) {
+          const subscribeBtn = document.createElement('button');
+          subscribeBtn.className = 'btn-subscribe';
+          subscribeBtn.textContent = 'Subscribe';
+          subscribeBtn.addEventListener('click', () => {
+            openModal();
+          });
+          subscribeContainer.appendChild(subscribeBtn);
+        }
       }
 
       // Initialize video player
@@ -464,24 +537,23 @@
       // Track view and watch history
       let viewCounted = false;
       let historyAdded = false;
+      const historyPaused = localStorage.getItem('historyPaused') === 'true';
+      if (currentUser && !historyPaused) {
+        historyAdded = true;
+        await addToWatchHistory(video.id, 0);
+      }
       player.on('timeupdate', async () => {
         const currentTime = player.currentTime();
         const duration = player.duration();
         const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
-        if (!viewCounted && currentTime > 5) {
+        if (!viewCounted && (currentTime >= 10 || progress >= 20)) {
           viewCounted = true;
-          await incrementViews(video.id);
-        }
-
-        // Add to watch history after 10 seconds (if not paused)
-        const historyPaused = localStorage.getItem('historyPaused') === 'true';
-        if (!historyAdded && currentTime > 10 && currentUser && !historyPaused) {
-          historyAdded = true;
-          await addToWatchHistory(video.id, Math.floor(progress));
+          await recordView(video.id);
         }
 
         // Update watch history progress every 30 seconds (if not paused)
+        const historyPaused = localStorage.getItem('historyPaused') === 'true';
         if (currentUser && historyAdded && !historyPaused && Math.floor(currentTime) % 30 === 0) {
           await addToWatchHistory(video.id, Math.floor(progress));
         }
@@ -590,13 +662,12 @@
       commentsList.innerHTML = comments.map(comment => {
         const profile = comment.profiles || {};
         const username = escapeHtml(profile.username || 'Unknown');
-        const avatarUrl = profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(profile.username || 'Unknown')}`;
         const commentText = escapeHtml(comment.text);
         const timeAgo = escapeHtml(timeSince(comment.created_at));
 
         return `
           <div class="watch-comment">
-            <img src="${avatarUrl}" alt="${username}" class="watch-avatar avatar-loading" onload="this.classList.remove('avatar-loading')" onerror="this.classList.remove('avatar-loading'); this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(username)}';">
+            ${renderAvatarWithBadge(profile, { imgClass: 'watch-avatar', wrapperClass: 'watch-avatar-wrapper' })}
             <div class="watch-comment-body">
               <div class="watch-comment-header">
                 <span class="watch-comment-author">@${username}</span>
@@ -604,21 +675,205 @@
               </div>
               <div class="watch-comment-text">${commentText}</div>
               <div class="watch-comment-actions-row">
-                <button class="watch-comment-action" onclick="likeComment('${comment.id}')">
+                <button class="watch-comment-action" data-action="like" data-comment-id="${comment.id}">
                   ${getIcon('like')}
-                  <span>0</span>
+                  <span class="comment-like-count">0</span>
                 </button>
-                <button class="watch-comment-action">Reply</button>
+                <button class="watch-comment-action" data-action="dislike" data-comment-id="${comment.id}">
+                  ${getIcon('dislike')}
+                  <span class="comment-dislike-count">0</span>
+                </button>
+                <button class="watch-comment-action" data-action="reply" data-comment-id="${comment.id}">Reply</button>
               </div>
+              <div class="watch-comment-replies" id="replies-${comment.id}"></div>
             </div>
           </div>
         `;
       }).join('');
+
+      comments.forEach(comment => {
+        const repliesContainer = document.getElementById(`replies-${comment.id}`);
+        if (repliesContainer) {
+          loadRepliesForComment(comment.id, repliesContainer);
+        }
+      });
+
+      initializeCommentReactions(comments);
     }
 
-    function likeComment(commentId) {
-      // Placeholder for like comment functionality
-      showNotification('Comment like feature coming soon!', 'info');
+    function setupDescriptionToggle() {
+      const description = document.getElementById('videoDescription');
+      const descriptionText = document.getElementById('videoDescriptionText');
+      const toggle = document.getElementById('descriptionToggle');
+
+      if (!description || !descriptionText || !toggle) return;
+
+      const plainText = descriptionText.textContent || '';
+      const shouldCollapse = plainText.trim().length > 180;
+
+      if (!shouldCollapse) {
+        toggle.style.display = 'none';
+        description.classList.remove('collapsed');
+        return;
+      }
+
+      toggle.style.display = 'inline-flex';
+      description.classList.add('collapsed');
+      toggle.textContent = 'Show more';
+
+      toggle.onclick = () => {
+        const isCollapsed = description.classList.toggle('collapsed');
+        toggle.textContent = isCollapsed ? 'Show more' : 'Show less';
+      };
+    }
+
+    async function initializeCommentReactions(comments) {
+      if (!comments || comments.length === 0) return;
+      try {
+        const commentIds = comments.map(comment => comment.id);
+        const { likesById, dislikesById, userLiked, userDisliked } = await getCommentReactions(commentIds);
+
+        comments.forEach(comment => {
+          const likes = typeof likesById[comment.id] === 'number'
+            ? likesById[comment.id]
+            : (comment.likes_count || 0);
+          const dislikes = typeof dislikesById[comment.id] === 'number'
+            ? dislikesById[comment.id]
+            : (comment.dislikes_count || 0);
+
+          updateCommentReactionState(comment.id, {
+            likes,
+            dislikes,
+            liked: userLiked.has(comment.id),
+            disliked: userDisliked.has(comment.id)
+          });
+        });
+      } catch (error) {
+        console.error('Error loading comment reactions:', error);
+      }
+    }
+
+    function updateCommentReactionState(commentId, state) {
+      commentReactionState.set(commentId, state);
+
+      const likeButton = document.querySelector(`.watch-comment-action[data-action="like"][data-comment-id="${commentId}"]`);
+      const dislikeButton = document.querySelector(`.watch-comment-action[data-action="dislike"][data-comment-id="${commentId}"]`);
+      const likeCount = likeButton?.querySelector('.comment-like-count');
+      const dislikeCount = dislikeButton?.querySelector('.comment-dislike-count');
+
+      if (likeCount) likeCount.textContent = state.likes;
+      if (dislikeCount) dislikeCount.textContent = state.dislikes;
+      if (likeButton) likeButton.classList.toggle('active', state.liked);
+      if (dislikeButton) dislikeButton.classList.toggle('active', state.disliked);
+    }
+
+    async function toggleCommentReaction(commentId, reaction) {
+      if (!currentUser) {
+        openModal();
+        return;
+      }
+
+      const state = commentReactionState.get(commentId) || {
+        likes: 0,
+        dislikes: 0,
+        liked: false,
+        disliked: false
+      };
+
+      try {
+        if (reaction === 'like') {
+          if (state.liked) {
+            await unlikeComment(commentId);
+            state.likes = Math.max(0, state.likes - 1);
+            state.liked = false;
+          } else {
+            if (state.disliked) {
+              await undislikeComment(commentId);
+              state.dislikes = Math.max(0, state.dislikes - 1);
+              state.disliked = false;
+            }
+            await likeComment(commentId);
+            state.likes += 1;
+            state.liked = true;
+          }
+        } else if (reaction === 'dislike') {
+          if (state.disliked) {
+            await undislikeComment(commentId);
+            state.dislikes = Math.max(0, state.dislikes - 1);
+            state.disliked = false;
+          } else {
+            if (state.liked) {
+              await unlikeComment(commentId);
+              state.likes = Math.max(0, state.likes - 1);
+              state.liked = false;
+            }
+            await dislikeComment(commentId);
+            state.dislikes += 1;
+            state.disliked = true;
+          }
+        }
+
+        updateCommentReactionState(commentId, state);
+      } catch (error) {
+        console.error('Error updating comment reaction:', error);
+        showNotification('Error updating comment reaction', 'error');
+      }
+    }
+
+    async function handleReply(commentId) {
+      if (!currentUser) {
+        openModal();
+        return;
+      }
+
+      const replyText = await showPrompt('Write a reply', {
+        title: 'Reply to comment',
+        placeholder: 'Add a reply...',
+        confirmText: 'Post',
+        multiline: true
+      });
+      if (!replyText || !replyText.trim()) return;
+
+      try {
+        await addReply(commentId, currentVideo.id, replyText.trim());
+        const repliesContainer = document.getElementById(`replies-${commentId}`);
+        if (repliesContainer) {
+          await loadRepliesForComment(commentId, repliesContainer);
+        }
+        showNotification('Reply posted', 'success');
+      } catch (error) {
+        console.error('Error posting reply:', error);
+        showNotification('Failed to post reply', 'error');
+      }
+    }
+
+    async function loadRepliesForComment(commentId, container) {
+      if (!container) return;
+      container.innerHTML = '';
+      try {
+        const replies = await getReplies(commentId);
+        if (!replies || replies.length === 0) return;
+        container.innerHTML = replies.map(reply => {
+          const profile = reply.profiles || {};
+          const username = escapeHtml(profile.username || 'Unknown');
+          const commentText = escapeHtml(reply.text);
+          const timeAgo = escapeHtml(timeSince(reply.created_at));
+          return `
+            <div class="watch-comment reply">
+              ${renderAvatarWithBadge(profile, { imgClass: 'watch-avatar', wrapperClass: 'watch-avatar-wrapper' })}
+              <div class="watch-comment-body">
+                <div class="watch-comment-header">
+                  <span class="watch-comment-author">@${username}</span>
+                  <span class="watch-comment-time">${timeAgo} ago</span>
+                </div>
+                <div class="watch-comment-text">${commentText}</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (error) {
+        console.error('Error loading replies:', error);
+      }
     }
 
     // Like/Dislike handlers
@@ -689,6 +944,62 @@
         document.execCommand('copy');
         document.body.removeChild(tempInput);
         showNotification('Link copied to clipboard!', 'success');
+      }
+    });
+
+    // Report button handler
+    const reportModalOverlay = document.getElementById('reportModalOverlay');
+    const closeReportModalBtn = document.getElementById('closeReportModal');
+    const cancelReportBtn = document.getElementById('cancelReportBtn');
+    const reportForm = document.getElementById('reportForm');
+    const reportReason = document.getElementById('reportReason');
+    const reportDetails = document.getElementById('reportDetails');
+
+    function openReportModal() {
+      reportReason.value = '';
+      reportDetails.value = '';
+      if (currentVideo && currentVideo.profiles) {
+        reportOwner.value = `@${currentVideo.profiles.username || 'Unknown'}`;
+      } else {
+        reportOwner.value = 'Unknown';
+      }
+      reportModalOverlay.style.display = 'flex';
+      reportModalOverlay.classList.add('show');
+    }
+
+    function closeReportModal() {
+      reportModalOverlay.classList.remove('show');
+      reportModalOverlay.style.display = 'none';
+    }
+
+    document.getElementById('reportBtn').addEventListener('click', () => {
+      if (!currentUser) {
+        openModal();
+        return;
+      }
+      openReportModal();
+    });
+
+    closeReportModalBtn.addEventListener('click', closeReportModal);
+    cancelReportBtn.addEventListener('click', closeReportModal);
+
+    reportForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const reasonValue = reportReason.value.trim();
+      if (!reasonValue) {
+        showNotification('Please select a reason', 'error');
+        return;
+      }
+      try {
+        await reportVideo(currentVideo.id, reasonValue, reportDetails.value.trim());
+        showNotification('Report submitted. Thanks for letting us know.', 'success');
+        closeReportModal();
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 800);
+      } catch (error) {
+        console.error('Error reporting video:', error);
+        showNotification(error.message || 'Error submitting report', 'error');
       }
     });
 
@@ -771,9 +1082,25 @@
         }
       }
     });
+
+    document.getElementById('commentsList').addEventListener('click', async (event) => {
+      const button = event.target.closest('.watch-comment-action');
+      if (!button) return;
+
+      const action = button.dataset.action;
+      const commentId = button.dataset.commentId;
+      if (!action || !commentId) return;
+
+      if (action === 'reply') {
+        await handleReply(commentId);
+        return;
+      }
+
+      if (action === 'like' || action === 'dislike') {
+        await toggleCommentReaction(commentId, action);
+      }
+    });
   </script>
 
-  <!-- Adsterra Banner Ad Only (popup removed) -->
-  <script async="async" data-cfasync="false" src="https://pl28394065.effectivegatecpm.com/ce630968429585fc33b1cd2e0f35d06a/invoke.js"></script>
 </body>
 </html>

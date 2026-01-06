@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.quilljs.com https://pl28394065.effectivegatecpm.com https://pl28394078.effectivegatecpm.com https://va.vercel-scripts.com https://cdn.growthbook.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.quilljs.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https: https://videodelivery.net https://cloudflarestream.com; connect-src 'self' https://*.supabase.co https://api.cloudflare.com https://videodelivery.net https://www.effectivegatecpm.com https://vitals.vercel-insights.com https://cdn.growthbook.io; frame-src 'self' https://embed.cloudflarestream.com; object-src 'none'; base-uri 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.quilljs.com https://pl28394065.effectivegatecpm.com https://pl28394078.effectivegatecpm.com https://va.vercel-scripts.com https://cdn.growthbook.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.quilljs.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https: https://videodelivery.net https://cloudflarestream.com; connect-src 'self' https://*.supabase.co https://api.ipify.org https://cdn.jsdelivr.net https://api.cloudflare.com https://videodelivery.net https://www.effectivegatecpm.com https://vitals.vercel-insights.com https://cdn.growthbook.io; frame-src 'self' https://embed.cloudflarestream.com; object-src 'none'; base-uri 'self';">
   <title>Video Editor - Mukkaz</title>
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <script src="config.local.js" onerror="console.warn('config.local.js not found - using defaults')"></script>
-  <script src="config.js"></script>
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="youtube-redesign.css">
+  <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+  <script src="js/config.local.js" onerror="console.warn('config.local.js not found - using defaults')"></script>
+  <script src="js/config.js"></script>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/youtube-redesign.css">
   <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-  <script src="age-gate.js"></script>
-  <script src="components.js"></script>
-  <script src="analytics.js"></script>
-  <script src="growthbook.js"></script>
+  <script src="js/age-gate.js"></script>
+  <script src="js/components.js"></script>
+  <script src="js/analytics.js" defer></script>
+  <script src="js/growthbook.js" defer></script>
 </head>
 <body>
   <!-- Navigation Bar -->
@@ -25,7 +25,7 @@
         <span id="hamburgerIcon"></span>
       </button>
       <a href="index.html" class="logo">
-        <img src="logo.png" alt="Mukkaz" onerror="this.style.display='none'">
+        <img src="assets/logo.png" alt="Mukkaz" onerror="this.style.display='none'">
       </a>
     </div>
 
@@ -58,7 +58,7 @@
     </div>
     <div class="sidebar-section">
       <a href="my-videos.html" class="sidebar-item active">
-        <span id="libraryIcon"></span>
+        <span id="myVideosIcon"></span>
         <span>My Videos</span>
       </a>
     </div>
@@ -215,10 +215,10 @@
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-  <script src="icons.js"></script>
-  <script src="utils.js"></script>
-  <script src="supabase.js"></script>
-  <script src="app.js"></script>
+  <script src="js/icons.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/app.js"></script>
   <script>
     let currentVideo = null;
     let quillEditor = null;
@@ -496,11 +496,21 @@
     }
 
     async function deleteVideo() {
-      if (!confirm('Are you sure you want to delete this video? This action cannot be undone.')) {
+      const confirmed = await showConfirm('Are you sure you want to delete this video? This action cannot be undone.', {
+        title: 'Delete video',
+        confirmText: 'Delete',
+        danger: true
+      });
+      if (!confirmed) {
         return;
       }
 
-      if (!confirm('This will permanently delete the video and all its data (comments, likes, etc.). Are you absolutely sure?')) {
+      const finalConfirm = await showConfirm('This will permanently delete the video and all its data (comments, likes, etc.). Are you absolutely sure?', {
+        title: 'Confirm delete',
+        confirmText: 'Delete',
+        danger: true
+      });
+      if (!finalConfirm) {
         return;
       }
 

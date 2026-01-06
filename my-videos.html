@@ -3,20 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://pl28394065.effectivegatecpm.com https://pl28394078.effectivegatecpm.com https://va.vercel-scripts.com https://cdn.growthbook.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https: https://videodelivery.net https://cloudflarestream.com; connect-src 'self' https://*.supabase.co https://cdn.jsdelivr.net https://api.cloudflare.com https://videodelivery.net https://embed.cloudflarestream.com https://vitals.vercel-insights.com https://cdn.growthbook.io; frame-src 'self' https://embed.cloudflarestream.com https://iframe.videodelivery.net; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://pl28394065.effectivegatecpm.com https://pl28394078.effectivegatecpm.com https://va.vercel-scripts.com https://cdn.growthbook.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https: https://videodelivery.net https://cloudflarestream.com; connect-src 'self' https://*.supabase.co https://api.ipify.org https://cdn.jsdelivr.net https://api.cloudflare.com https://videodelivery.net https://embed.cloudflarestream.com https://vitals.vercel-insights.com https://cdn.growthbook.io; frame-src 'self' https://embed.cloudflarestream.com https://iframe.videodelivery.net; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
   <title>My Videos - Mukkaz</title>
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <script src="config.local.js" onerror="console.warn('config.local.js not found - using defaults')"></script>
-  <script src="config.js"></script>
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="youtube-redesign.css">
+  <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+  <script src="js/config.local.js" onerror="console.warn('config.local.js not found - using defaults')"></script>
+  <script src="js/config.js"></script>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/youtube-redesign.css">
   <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <script src="age-gate.js"></script>
-  <script src="components.js"></script>
-  <script src="analytics.js"></script>
-  <script src="growthbook.js"></script>
+  <script src="js/age-gate.js"></script>
+  <script src="js/components.js"></script>
+  <script src="js/analytics.js" defer></script>
+  <script src="js/growthbook.js" defer></script>
 </head>
-<body>
+<body class="my-videos-page">
   <!-- Navigation Bar -->
   <nav class="navbar">
     <div class="navbar-left">
@@ -24,7 +24,7 @@
         <span id="hamburgerIcon"></span>
       </button>
       <a href="index.html" class="logo">
-        <img src="logo.png" alt="Mukkaz" onerror="this.style.display='none'">
+        <img src="assets/logo.png" alt="Mukkaz" onerror="this.style.display='none'">
       </a>
     </div>
 
@@ -161,6 +161,10 @@
               <span>Total Likes:</span>
               <strong id="totalLikes">0</strong>
             </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 0.5rem;">
+              <span>Total Earnings (JMD):</span>
+              <strong id="totalEarnings">0</strong>
+            </div>
           </div>
 
           <!-- Actions -->
@@ -294,14 +298,15 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="icons.js"></script>
-  <script src="utils.js"></script>
-  <script src="supabase.js"></script>
-  <script src="app.js"></script>
+  <script src="js/icons.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/app.js"></script>
   <script>
     let currentUser = null;
     let currentProfile = null;
     let allMyVideos = [];
+    let videoEarningsMap = {};
     let currentFilter = 'all';
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -342,8 +347,9 @@
           return;
         }
 
-        updateStats(allMyVideos);
-        displayVideos(allMyVideos);
+        videoEarningsMap = await buildVideoEarningsMap(allMyVideos);
+        updateStats(allMyVideos, videoEarningsMap);
+        displayVideos(allMyVideos, videoEarningsMap);
       } catch (error) {
         console.error('Error loading videos:', error);
         skeleton.style.display = 'none';
@@ -351,7 +357,7 @@
       }
     }
 
-    function displayVideos(videos) {
+    function displayVideos(videos, earningsMap = {}) {
       const videosList = document.getElementById('videosList');
 
       if (videos.length === 0) {
@@ -374,6 +380,7 @@
         items.forEach(video => {
           const profile = video.profiles || currentProfile;
           const thumbnailUrl = video.thumbnail_url || 'https://via.placeholder.com/280x158?text=No+Thumbnail';
+          const earnings = earningsMap[video.id] || 0;
 
           html += `
             <div class="history-item" data-video-id="${video.id}">
@@ -389,6 +396,8 @@
                   <span class="history-views">${formatNumber(video.likes_count || 0)} likes</span>
                   <span>•</span>
                   <span class="history-date">${timeSince(new Date(video.created_at))} ago</span>
+                  <span>•</span>
+                  <span class="history-views">JMD ${formatNumber(earnings)}</span>
                 </div>
                 ${video.description ? `<div class="history-description">${escapeHtml(video.description.substring(0, 100))}...</div>` : ''}
               </div>
@@ -440,14 +449,30 @@
       return groups;
     }
 
-    function updateStats(videos) {
+    function updateStats(videos, earningsMap = {}) {
       const totalVideos = videos.length;
       const totalViews = videos.reduce((sum, v) => sum + (v.views_count || 0), 0);
       const totalLikes = videos.reduce((sum, v) => sum + (v.likes_count || 0), 0);
+      const totalEarnings = Object.values(earningsMap).reduce((sum, val) => sum + Number(val || 0), 0);
 
       document.getElementById('totalVideos').textContent = formatNumber(totalVideos);
       document.getElementById('totalViews').textContent = formatNumber(totalViews);
       document.getElementById('totalLikes').textContent = formatNumber(totalLikes);
+      document.getElementById('totalEarnings').textContent = formatNumber(totalEarnings);
+    }
+
+    async function buildVideoEarningsMap(videos) {
+      try {
+        const ids = videos.map(v => v.id);
+        const earnings = await getVideoEarnings(ids);
+        return (earnings || []).reduce((acc, item) => {
+          acc[item.video_id] = Number(item.earnings_jmd || 0);
+          return acc;
+        }, {});
+      } catch (error) {
+        console.error('Error loading video earnings:', error);
+        return {};
+      }
     }
 
     function setupEventListeners() {
@@ -465,7 +490,7 @@
             filtered = allMyVideos.filter(v => v.is_private);
           }
 
-          displayVideos(filtered);
+          displayVideos(filtered, videoEarningsMap);
         });
       });
 
@@ -479,9 +504,9 @@
             (v.description && v.description.toLowerCase().includes(query)) ||
             (v.tags && v.tags.toLowerCase().includes(query))
           );
-          displayVideos(filtered);
+          displayVideos(filtered, videoEarningsMap);
         } else {
-          displayVideos(allMyVideos);
+          displayVideos(allMyVideos, videoEarningsMap);
         }
       });
     }
@@ -506,8 +531,13 @@
       }
     }
 
-    function confirmDeleteVideo(videoId) {
-      if (confirm('Are you sure you want to delete this video? This action cannot be undone.')) {
+    async function confirmDeleteVideo(videoId) {
+      const confirmed = await showConfirm('Are you sure you want to delete this video? This action cannot be undone.', {
+        title: 'Delete video',
+        confirmText: 'Delete',
+        danger: true
+      });
+      if (confirmed) {
         deleteVideo(videoId);
       }
     }
@@ -556,12 +586,18 @@
 
         if (error) throw error;
 
+        await notifySelf(
+          'video_delete',
+          'Video deleted',
+          'You deleted a video from your channel.',
+          'my-videos.html'
+        );
         showNotification('Video deleted successfully', 'success');
 
         // Remove from local array and refresh display
         allMyVideos = allMyVideos.filter(v => v.id !== videoId);
-        displayVideos(allMyVideos);
-        updateStats(allMyVideos);
+        displayVideos(allMyVideos, videoEarningsMap);
+        updateStats(allMyVideos, videoEarningsMap);
       } catch (error) {
         console.error('Error deleting video:', error);
         showNotification('Error deleting video: ' + error.message, 'error');

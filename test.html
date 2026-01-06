@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Upload – Mukkaz</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --bg:#0f0f0f;
+  --panel:#181818;
+  --hover:#1f1f1f;
+  --border:#303030;
+  --text:#fff;
+  --muted:#aaa;
+  --pill:#272727;
+  --accent:#ff0000;
+}
+
+*{
+  box-sizing:border-box;
+  font-family:Roboto,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+
+body{
+  margin:0;
+  background:linear-gradient(180deg,#0f0f0f,#121212);
+  color:var(--text);
+}
+
+/* ---------- LAYOUT ---------- */
+.page{
+  max-width:1400px;
+  margin:auto;
+  padding:32px 24px;
+  display:grid;
+  grid-template-columns:1fr 360px;
+  gap:48px;
+}
+
+/* ---------- LEFT ---------- */
+h1{font-size:28px;font-weight:700;margin-bottom:18px}
+
+.filters{
+  display:flex;
+  gap:12px;
+  margin-bottom:24px;
+}
+.filter{
+  padding:8px 16px;
+  border-radius:999px;
+  background:var(--pill);
+  font-size:14px;
+}
+.filter.active{background:#fff;color:#000}
+
+.section{font-size:18px;font-weight:500;margin-bottom:16px}
+
+.row{
+  display:flex;
+  gap:16px;
+  padding:12px 8px;
+  border-radius:12px;
+}
+.row:hover{background:var(--hover)}
+
+/* ---------- SNAPSHOT ---------- */
+.thumb{
+  width:246px;
+  height:138px;
+  border-radius:12px;
+  background:#202020;
+  border:1px solid #333;
+  position:relative;
+  overflow:hidden;
+  flex-shrink:0;
+}
+
+.thumb img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  opacity:.9;
+}
+
+.upload-overlay{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  background:rgba(0,0,0,.45);
+  font-size:14px;
+}
+
+.upload-overlay button{
+  margin-top:8px;
+  padding:8px 14px;
+  border-radius:999px;
+  border:none;
+  background:var(--accent);
+  color:#fff;
+  font-weight:500;
+  cursor:pointer;
+}
+
+.duration{
+  position:absolute;
+  bottom:6px;
+  right:6px;
+  background:#000;
+  padding:2px 6px;
+  font-size:12px;
+  border-radius:4px;
+}
+
+/* ---------- THUMBNAIL PICKER ---------- */
+.thumb-picker{
+  margin-top:10px;
+  display:flex;
+  gap:8px;
+}
+
+.thumb-option{
+  width:76px;
+  height:44px;
+  border-radius:6px;
+  overflow:hidden;
+  border:2px solid transparent;
+  cursor:pointer;
+  opacity:.75;
+}
+
+.thumb-option img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.thumb-option.active{
+  border-color:var(--accent);
+  opacity:1;
+}
+
+/* ---------- INFO ---------- */
+.content{max-width:560px}
+
+.title{
+  font-size:16px;
+  font-weight:500;
+  margin-bottom:4px;
+}
+
+.meta{
+  font-size:14px;
+  color:var(--muted);
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+
+.draft-pill{
+  background:var(--pill);
+  padding:2px 8px;
+  border-radius:999px;
+  font-size:12px;
+}
+
+.desc{
+  margin-top:6px;
+  font-size:14px;
+  color:var(--muted);
+  line-height:1.35;
+}
+
+/* ---------- RIGHT (HISTORY STYLE) ---------- */
+.sidebar{
+  position:sticky;
+  top:32px;
+}
+
+.sidebar-section{
+  padding-bottom:16px;
+  margin-bottom:16px;
+  border-bottom:1px solid var(--border);
+}
+
+.sidebar label{
+  display:block;
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:6px;
+}
+
+.sidebar input,
+.sidebar textarea,
+.sidebar select{
+  width:100%;
+  background:transparent;
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:10px;
+  color:var(--text);
+  font-size:14px;
+}
+
+.sidebar textarea{min-height:100px;resize:vertical}
+
+/* ---------- TAGS ---------- */
+.tags{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+.tag{
+  background:var(--pill);
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:13px;
+  display:flex;
+  gap:6px;
+  align-items:center;
+}
+.tag span{cursor:pointer;opacity:.6}
+
+/* ---------- ACTIONS ---------- */
+.actions{
+  display:flex;
+  gap:12px;
+}
+
+.save{
+  background:#2a2a2a;
+  border:1px solid var(--border);
+  color:#fff;
+  padding:10px 16px;
+  border-radius:999px;
+  cursor:pointer;
+}
+
+.publish{
+  background:var(--accent);
+  border:none;
+  color:#fff;
+  padding:10px 18px;
+  border-radius:999px;
+  cursor:pointer;
+}
+
+/* ---------- MOBILE ---------- */
+@media(max-width:1100px){
+  .page{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<div class="page">
+
+  <!-- LEFT -->
+  <div>
+    <h1>Upload video</h1>
+
+    <div class="filters">
+      <div class="filter active">Upload</div>
+      <div class="filter">Draft</div>
+    </div>
+
+    <div class="section">Today</div>
+
+    <div class="row">
+
+      <div>
+        <div class="thumb">
+          <img id="snapshot" style="display:none">
+          <div class="upload-overlay">
+            <div>Drag & drop video</div>
+            <button id="selectBtn">Select video</button>
+          </div>
+          <div class="duration">00:00</div>
+        </div>
+
+        <!-- AUTO THUMBNAILS -->
+        <div class="thumb-picker" id="thumbPicker">
+          <div class="thumb-option active"><img src="https://picsum.photos/160/90?1"></div>
+          <div class="thumb-option"><img src="https://picsum.photos/160/90?2"></div>
+          <div class="thumb-option"><img src="https://picsum.photos/160/90?3"></div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="title" id="previewTitle">Untitled video</div>
+
+        <div class="meta">
+        
+        </div>
+
+        <div class="desc" id="previewDesc">No description</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="sidebar">
+
+    <div class="sidebar-section">
+      <label>Title</label>
+      <input id="titleInput" placeholder="Add a title">
+    </div>
+
+    <div class="sidebar-section">
+      <label>Description</label>
+      <textarea id="descInput" placeholder="Tell viewers about your video"></textarea>
+    </div>
+
+    <div class="sidebar-section">
+      <label>Tags</label>
+      <input id="tagInput" placeholder="Add tag and press Enter">
+      <div class="tags" id="tags"></div>
+    </div>
+
+    <div class="sidebar-section">
+      <label>Visibility</label>
+      <select>
+        <option>Public</option>
+        <option>Unlisted</option>
+        <option>Private</option>
+      </select>
+    </div>
+
+    <div class="actions">
+      <button class="save">Save draft</button>
+      <button class="publish">Publish</button>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+/* Live title */
+titleInput.oninput = () => {
+  previewTitle.textContent = titleInput.value || 'Untitled video';
+};
+
+/* Live description */
+descInput.oninput = () => {
+  previewDesc.textContent = descInput.value || 'No description';
+};
+
+/* Tags */
+tagInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && tagInput.value.trim()) {
+    const tag = document.createElement('div');
+    tag.className = 'tag';
+    tag.innerHTML = `${tagInput.value}<span>×</span>`;
+    tag.querySelector('span').onclick = () => tag.remove();
+    tags.appendChild(tag);
+    tagInput.value = '';
+  }
+});
+
+/* Fake snapshot + thumbnail select */
+selectBtn.onclick = () => {
+  snapshot.src = document.querySelector('.thumb-option img').src;
+  snapshot.style.display = 'block';
+};
+
+/* Thumbnail picker logic */
+document.querySelectorAll('.thumb-option').forEach(opt => {
+  opt.onclick = () => {
+    document.querySelectorAll('.thumb-option').forEach(o => o.classList.remove('active'));
+    opt.classList.add('active');
+    snapshot.src = opt.querySelector('img').src;
+    snapshot.style.display = 'block';
+  };
+});
+</script>
+
+</body>
+</html>

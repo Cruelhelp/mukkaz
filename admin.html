@@ -4,19 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Panel - Mukkaz</title>
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <script src="config.local.js" onerror="console.warn('config.local.js not found - using defaults')"></script>
-  <script src="config.js"></script>
-  <script src="config.cloudflare.js"></script>
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="youtube-redesign.css">
+  <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+  <script src="js/config.local.js" onerror="console.warn('config.local.js not found - using defaults')"></script>
+  <script src="js/config.js"></script>
+  <script src="js/config.cloudflare.js"></script>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/youtube-redesign.css">
   <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     .admin-container {
-      max-width: 1600px;
-      margin: 0 auto;
+      width: 100%;
+      max-width: none;
+      margin: 0;
       padding: 2rem;
+      min-width: 0;
     }
 
     .admin-header {
@@ -100,6 +102,78 @@
 
     .stat-card .stat-change.negative {
       color: #ef4444;
+    }
+
+    .ad-control-center {
+      background: var(--bg-secondary);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .ad-control-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .ad-control-header h3 {
+      margin: 0;
+    }
+
+    .ad-control-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1rem;
+    }
+
+    .ad-control-card {
+      background: var(--bg-primary);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .ad-control-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 600;
+    }
+
+    .ad-control-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .ad-control-row label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .ad-control-row select,
+    .ad-control-row input {
+      max-width: 190px;
+    }
+
+    .ad-control-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .ad-control-subtext {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin: 0;
     }
 
     .data-table {
@@ -392,6 +466,12 @@
       overflow-y: auto;
       z-index: 100;
       transition: transform 0.3s ease;
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE and Edge */
+    }
+
+    .admin-sidebar::-webkit-scrollbar {
+      display: none; /* Chrome, Safari, Opera */
     }
 
     .admin-sidebar-section {
@@ -466,7 +546,9 @@
 
     @media (min-width: 1025px) {
       .admin-container {
-        margin-left: 240px;
+        margin-left: 0;
+        width: 100%;
+        padding: 2rem 2rem 2rem 1.5rem;
       }
 
       .hamburger-btn {
@@ -476,6 +558,7 @@
 
     @media (max-width: 1024px) {
       .admin-container {
+        width: 100%;
         padding: 1rem;
       }
 
@@ -532,7 +615,7 @@
         <span id="hamburgerIcon"></span>
       </button>
       <a href="index.html" class="logo">
-        <img src="logo.png" alt="Mukkaz" onerror="this.style.display='none'">
+        <img src="assets/logo.png" alt="Mukkaz" onerror="this.style.display='none'">
       </a>
     </div>
 
@@ -564,6 +647,10 @@
         <span id="videosIcon"></span>
         <span>Videos</span>
       </a>
+      <a href="#" class="admin-sidebar-item" data-tab="reports">
+        <span id="reportsIcon"></span>
+        <span>Reports & Bans</span>
+      </a>
       <a href="#" class="admin-sidebar-item" data-tab="analytics">
         <span id="analyticsIcon"></span>
         <span>Analytics</span>
@@ -575,6 +662,10 @@
       <a href="#" class="admin-sidebar-item" data-tab="ads">
         <span id="adsIcon"></span>
         <span>Ad Control</span>
+      </a>
+      <a href="#" class="admin-sidebar-item" data-tab="payouts">
+        <span id="payoutsIcon"></span>
+        <span>Payouts</span>
       </a>
       <a href="#" class="admin-sidebar-item" data-tab="cloudflare">
         <span id="cloudflareIcon"></span>
@@ -618,9 +709,11 @@
         <button class="admin-tab active" data-tab="dashboard">Dashboard</button>
         <button class="admin-tab" data-tab="users">Users</button>
         <button class="admin-tab" data-tab="videos">Videos</button>
+        <button class="admin-tab" data-tab="reports">Reports & Bans</button>
         <button class="admin-tab" data-tab="analytics">Analytics</button>
         <button class="admin-tab" data-tab="activity">Activity Logs</button>
         <button class="admin-tab" data-tab="ads">Ad Control</button>
+        <button class="admin-tab" data-tab="payouts">Payouts</button>
         <button class="admin-tab" data-tab="cloudflare">Cloudflare</button>
         <button class="admin-tab" data-tab="database">Database</button>
         <button class="admin-tab" data-tab="settings">Settings</button>
@@ -648,6 +741,66 @@
             <h3>Active Users (24h)</h3>
             <p class="stat-value" id="activeUsers">0</p>
             <p class="stat-change" id="activeChange">Active now</p>
+          </div>
+        </div>
+
+        <div class="chart-container" style="margin-top: 2rem;">
+          <h3>Safety & Compliance</h3>
+          <div class="stats-grid" style="margin-top: 1rem;">
+            <div class="stat-card">
+              <h3>Open Reports</h3>
+              <p class="stat-value" id="openReports">0</p>
+              <p class="stat-change">Needs review</p>
+            </div>
+            <div class="stat-card">
+              <h3>Reported Videos</h3>
+              <p class="stat-value" id="reportedVideos">0</p>
+              <p class="stat-change">Total flagged</p>
+            </div>
+            <div class="stat-card">
+              <h3>Banned Users</h3>
+              <p class="stat-value" id="bannedUsers">0</p>
+              <p class="stat-change">Active bans</p>
+            </div>
+            <div class="stat-card">
+              <h3>Active IP Bans</h3>
+              <p class="stat-value" id="activeIpBans">0</p>
+              <p class="stat-change">Network blocks</p>
+            </div>
+          </div>
+          <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem;">
+            <button class="btn-primary" onclick="showTab('reports')">Review Reports</button>
+            <button class="btn-secondary" onclick="showTab('users')">Manage Bans</button>
+          </div>
+        </div>
+
+        <div class="chart-container" style="margin-top: 2rem;">
+          <h3>Monetization</h3>
+          <div class="stats-grid" style="margin-top: 1rem;">
+            <div class="stat-card">
+              <h3>Pending Payouts</h3>
+              <p class="stat-value" id="pendingPayouts">0</p>
+              <p class="stat-change">Awaiting review</p>
+            </div>
+            <div class="stat-card">
+              <h3>Approved Payouts</h3>
+              <p class="stat-value" id="approvedPayouts">0</p>
+              <p class="stat-change">All time</p>
+            </div>
+            <div class="stat-card">
+              <h3>Ad Control</h3>
+              <p class="stat-value">Live</p>
+              <p class="stat-change">Manage placements</p>
+            </div>
+            <div class="stat-card">
+              <h3>Creator Earnings</h3>
+              <p class="stat-value">JMD</p>
+              <p class="stat-change">Track in profile</p>
+            </div>
+          </div>
+          <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem;">
+            <button class="btn-primary" onclick="showTab('payouts')">Review Payouts</button>
+            <button class="btn-secondary" onclick="showTab('ads')">Ad Control</button>
           </div>
         </div>
 
@@ -771,6 +924,67 @@
         </div>
       </div>
 
+      <!-- Reports & Bans Section -->
+      <div class="admin-section" id="reports-section">
+        <div class="data-table" style="margin-bottom: 2rem;">
+          <div class="table-header">
+            <h3>Video Reports</h3>
+            <div class="table-actions">
+              <button class="btn-secondary" onclick="loadReports()">Refresh</button>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table id="reportsTable">
+              <thead>
+                <tr>
+                  <th>Video</th>
+                  <th>Reported User</th>
+                  <th>Reporter</th>
+                  <th>Reason</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="reportsTableBody">
+                <tr>
+                  <td colspan="7" style="text-align: center; padding: 2rem;">Loading reports...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="data-table">
+          <div class="table-header">
+            <h3>IP Bans</h3>
+            <div class="table-actions" style="display: flex; gap: 0.75rem;">
+              <input type="text" class="table-search" id="ipBanInput" placeholder="IP address">
+              <input type="text" class="table-search" id="ipBanReasonInput" placeholder="Reason (optional)">
+              <button class="btn-primary" onclick="createIpBan()">Ban IP</button>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table id="ipBansTable">
+              <thead>
+                <tr>
+                  <th>IP</th>
+                  <th>Reason</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="ipBansTableBody">
+                <tr>
+                  <td colspan="5" style="text-align: center; padding: 2rem;">Loading IP bans...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- Analytics Section -->
       <div class="admin-section" id="analytics-section">
         <div class="stats-grid">
@@ -789,6 +1003,48 @@
           <div class="stat-card">
             <h3>Total Storage</h3>
             <p class="stat-value" id="totalStorage">0 GB</p>
+          </div>
+        </div>
+
+        <div class="chart-container" style="margin-top: 2rem;">
+          <h3>Storage Overview</h3>
+          <div class="stats-grid" style="margin-top: 1rem;">
+            <div class="stat-card">
+              <h3>Total Storage</h3>
+              <p class="stat-value" id="storageTotal">0 GB</p>
+            </div>
+            <div class="stat-card">
+              <h3>Storage Objects</h3>
+              <p class="stat-value" id="storageFileCount">0</p>
+            </div>
+            <div class="stat-card">
+              <h3>Avg. File Size</h3>
+              <p class="stat-value" id="storageAvgSize">0 MB</p>
+            </div>
+            <div class="stat-card">
+              <h3>Last Updated</h3>
+              <p class="stat-value" id="storageLastUpdated">—</p>
+            </div>
+          </div>
+          <div class="stats-grid" style="margin-top: 1rem;">
+            <div class="stat-card">
+              <h3>Videos Bucket</h3>
+              <p class="stat-value" id="storageVideosSize">0 GB</p>
+            </div>
+            <div class="stat-card">
+              <h3>Thumbnails Bucket</h3>
+              <p class="stat-value" id="storageThumbnailsSize">0 GB</p>
+            </div>
+            <div class="stat-card">
+              <h3>Avatars Bucket</h3>
+              <p class="stat-value" id="storageAvatarsSize">0 GB</p>
+            </div>
+          </div>
+          <p class="secondary" style="margin-top: 0.75rem;">Calculated from files in videos, thumbnails, and avatars buckets.</p>
+          <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem;">
+            <button class="btn-secondary" onclick="refreshStorageOverview()">Refresh Storage</button>
+            <button class="btn-secondary" onclick="cleanOrphanedStorage()">Clean Orphaned Storage</button>
+            <button class="btn-secondary" onclick="clearLocalCache()">Clear Local Cache</button>
           </div>
         </div>
 
@@ -890,44 +1146,102 @@
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
-          <div class="chart-container">
-            <h3>Ad Placement Controls</h3>
-            <div id="adPlacementsList" style="margin-top: 1rem;">
-              <div class="activity-item" style="display: flex; align-items: center; justify-content: space-between;">
-                <div>
-                  <strong>Watch Page - Banner Ad</strong>
-                  <p class="secondary">Below video player</p>
-                </div>
-                <label class="toggle-switch">
-                  <input type="checkbox" id="watchPageBannerToggle" checked onchange="saveAdSettings()">
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-              <div class="activity-item" style="display: flex; align-items: center; justify-content: space-between;">
-                <div>
-                  <strong>Watch Page - Ads Enabled</strong>
-                  <p class="secondary">All ads on video page</p>
-                </div>
+        <div class="ad-control-center">
+          <div class="ad-control-header">
+            <div>
+              <h3>Ad Control Center</h3>
+              <p class="secondary">Manage placements, formats, and Smartlink settings.</p>
+            </div>
+            <button class="btn-secondary" onclick="resetAdControls()">Reset Defaults</button>
+          </div>
+          <div class="ad-control-grid">
+            <div class="ad-control-card">
+              <div class="ad-control-title">
+                <span>Watch Page</span>
                 <label class="toggle-switch">
                   <input type="checkbox" id="watchPageEnabledToggle" checked onchange="saveAdSettings()">
                   <span class="toggle-slider"></span>
                 </label>
               </div>
-              <div class="activity-item" style="opacity: 0.5;">
-                <div>
-                  <strong>Home Page Ads</strong>
-                  <p class="secondary">Currently disabled</p>
-                </div>
-                <span class="badge badge-warning">Disabled</span>
+              <p class="ad-control-subtext">Video page ads and placements.</p>
+              <div class="ad-control-row">
+                <label for="watchPageBannerToggle">Banner slot</label>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="watchPageBannerToggle" checked onchange="saveAdSettings()">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="ad-control-row">
+                <label for="watchPageAdType">Ad type</label>
+                <select id="watchPageAdType" class="form-input" onchange="saveAdSettings()">
+                  <option value="banner">Banner</option>
+                  <option value="native">Native</option>
+                  <option value="inpage">In-page</option>
+                  <option value="popunder">Popunder</option>
+                </select>
+              </div>
+              <div class="ad-control-row">
+                <label for="watchPageAdPosition">Position</label>
+                <select id="watchPageAdPosition" class="form-input" onchange="saveAdSettings()">
+                  <option value="below_player">Below player</option>
+                  <option value="above_recs">Above recommendations</option>
+                  <option value="sidebar_top">Sidebar top</option>
+                  <option value="sidebar_bottom">Sidebar bottom</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="ad-control-card">
+              <div class="ad-control-title">
+                <span>Home Feed</span>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="homePageEnabledToggle" onchange="saveAdSettings()">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <p class="ad-control-subtext">Ads inside the main feed.</p>
+              <div class="ad-control-row">
+                <label for="homePageAdType">Ad type</label>
+                <select id="homePageAdType" class="form-input" onchange="saveAdSettings()">
+                  <option value="native">Native</option>
+                  <option value="banner">Banner</option>
+                  <option value="inpage">In-page</option>
+                </select>
+              </div>
+              <div class="ad-control-row">
+                <label for="homePageAdPosition">Position</label>
+                <select id="homePageAdPosition" class="form-input" onchange="saveAdSettings()">
+                  <option value="top">Top of feed</option>
+                  <option value="mid">Mid feed</option>
+                  <option value="bottom">Bottom of feed</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="ad-control-card">
+              <div class="ad-control-title">
+                <span>Smartlink</span>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="smartlinkEnabledToggle" onchange="saveAdSettings()">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <p class="ad-control-subtext">Send users to the best converting landing pages.</p>
+              <div class="ad-control-row">
+                <label for="smartlinkUrl">Smartlink URL</label>
+                <input type="text" id="smartlinkUrl" class="form-input" placeholder="https://..." onchange="saveAdSettings()">
+              </div>
+              <div class="ad-control-actions">
+                <button class="btn-secondary" onclick="copySmartlink()">Copy Link</button>
+                <button class="btn-secondary" onclick="openSmartlink()">Open Link</button>
               </div>
             </div>
           </div>
+        </div>
 
-          <div class="chart-container">
-            <h3>Performance (Last 7 Days)</h3>
-            <canvas id="adPerformanceChart" style="max-height: 300px;"></canvas>
-          </div>
+        <div class="chart-container" style="margin-top: 2rem;">
+          <h3>Performance (Last 7 Days)</h3>
+          <canvas id="adPerformanceChart" style="max-height: 300px;"></canvas>
         </div>
 
         <div class="chart-container" style="margin-top: 2rem;">
@@ -936,6 +1250,43 @@
             <button class="btn-secondary" onclick="window.open('https://publishers.adsterra.com/', '_blank')">Open Adsterra Dashboard</button>
             <button class="btn-secondary" onclick="clearAdCache()">Clear Ad Cache</button>
             <button class="btn-secondary" onclick="exportAdData()">Export Ad Data</button>
+          </div>
+        </div>
+
+        <div class="chart-container" style="margin-top: 2rem;">
+          <h3>Page Ad Status</h3>
+          <div id="adsPageStatusList"></div>
+        </div>
+      </div>
+
+      <!-- Payouts Section -->
+      <div class="admin-section" id="payouts-section">
+        <div class="data-table">
+          <div class="table-header">
+            <h3>Payout Requests</h3>
+            <div class="table-actions">
+              <button class="btn-secondary" onclick="loadPayoutRequests()">Refresh</button>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Creator</th>
+                  <th>Amount (JMD)</th>
+                  <th>Method</th>
+                  <th>Details</th>
+                  <th>Status</th>
+                  <th>Requested</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="payoutRequestsList">
+                <tr>
+                  <td colspan="7" style="text-align: center; padding: 2rem;">Loading payout requests...</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -1100,6 +1451,22 @@
             <option value="banned">Banned</option>
           </select>
         </div>
+        <div class="form-group">
+          <label>Ban Reason</label>
+          <textarea id="userBanReason" rows="3" placeholder="Why is this user banned?"></textarea>
+        </div>
+        <div class="form-group">
+          <label>IP Ban (optional)</label>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <input type="checkbox" id="userIpBanToggle">
+            <label for="userIpBanToggle" style="margin: 0;">Also ban this IP</label>
+          </div>
+          <input type="text" id="userIpBanValue" placeholder="Enter IP address (e.g. 203.0.113.5)">
+          <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.5rem;">
+            <input type="checkbox" id="userIpUnbanToggle">
+            <label for="userIpUnbanToggle" style="margin: 0;">Remove IP ban for this IP</label>
+          </div>
+        </div>
         <div style="display: flex; gap: 1rem;">
           <button type="submit" class="btn-primary" style="flex: 1;">Save</button>
           <button type="button" class="btn-secondary" onclick="closeUserModal()" style="flex: 1;">Cancel</button>
@@ -1122,12 +1489,12 @@
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script src="icons.js"></script>
-  <script src="utils.js"></script>
-  <script src="supabase.js"></script>
-  <script src="cloudflare-stream.js"></script>
-  <script src="app.js"></script>
+  <script src="js/icons.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/cloudflare-stream.js"></script>
+  <script src="js/app.js"></script>
 
-  <script src="admin.js"></script>
+  <script src="js/admin.js"></script>
 </body>
 </html>
