@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://vjs.zencdn.net https://pl28394065.effectivegatecpm.com https://pl28394078.effectivegatecpm.com https://va.vercel-scripts.com https://cdn.growthbook.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://vjs.zencdn.net; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https: https://videodelivery.net https://cloudflarestream.com; connect-src 'self' https://*.supabase.co https://api.ipify.org https://cdn.jsdelivr.net https://api.cloudflare.com https://videodelivery.net https://embed.cloudflarestream.com https://www.effectivegatecpm.com https://vitals.vercel-insights.com https://cdn.growthbook.io; frame-src 'self' https://embed.cloudflarestream.com https://iframe.videodelivery.net; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://vjs.zencdn.net https://pl28394065.effectivegatecpm.com https://pl28394078.effectivegatecpm.com https://pl28424963.effectivegatecpm.com https://va.vercel-scripts.com https://cdn.growthbook.io https://www.highperformanceformat.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://vjs.zencdn.net; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' blob: https: https://videodelivery.net https://cloudflarestream.com; connect-src 'self' https://*.supabase.co https://api.ipify.org https://cdn.jsdelivr.net https://api.cloudflare.com https://videodelivery.net https://embed.cloudflarestream.com https://www.effectivegatecpm.com https://vitals.vercel-insights.com https://cdn.growthbook.io; frame-src 'self' https://embed.cloudflarestream.com https://iframe.videodelivery.net https://www.highperformanceformat.com; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
   <title>Watch - Mukkaz</title>
   <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
   <script src="js/config.local.js" onerror="console.warn('config.local.js not found - using defaults')"></script>
@@ -104,8 +104,20 @@
         </div>
 
         <!-- Ad Banner Below Video -->
-        <div class="watch-ad-slot" id="watchAdSlot">
-          <div id="container-ce630968429585fc33b1cd2e0f35d06a"></div>
+        <div class="watch-ad-slot" id="watchAdSlot" data-static-ad="true">
+          <div style="width: 100%; max-width: 520px; margin: 0 auto; text-align: center;">
+            <div style="font-size: 12px; color: #8a8a8a; margin-bottom: 6px;">Sponsored</div>
+            <script>
+  atOptions = {
+    'key' : '006e3bf351fc2ff8b6527494ee492629',
+    'format' : 'iframe',
+    'height' : 60,
+    'width' : 468,
+    'params' : {}
+  };
+</script>
+<script src="https://www.highperformanceformat.com/006e3bf351fc2ff8b6527494ee492629/invoke.js"></script>
+          </div>
         </div>
 
         <!-- Title Skeleton -->
@@ -222,6 +234,21 @@
       <!-- Suggested Videos Sidebar -->
       <aside class="watch-sidebar">
         <div class="suggested-videos">
+        <div class="watch-ad-slot" style="margin: 8px 0 16px; display: flex; justify-content: center;">
+          <div style="width: 100%; max-width: 520px; text-align: center;">
+            <div style="font-size: 12px; color: #8a8a8a; margin-bottom: 6px;">Sponsored</div>
+            <script>
+  atOptions = {
+    'key' : '006e3bf351fc2ff8b6527494ee492629',
+    'format' : 'iframe',
+    'height' : 60,
+    'width' : 468,
+    'params' : {}
+  };
+</script>
+<script src="https://www.highperformanceformat.com/006e3bf351fc2ff8b6527494ee492629/invoke.js"></script>
+          </div>
+        </div>
           <div id="suggestedVideosList">
             <!-- Skeleton loaders while loading -->
             <div class="video-card-horizontal skeleton-horizontal">
@@ -520,6 +547,34 @@
         preload: 'auto'
       });
 
+      // Popunder ad trigger with cooldown
+      const popunderScriptSrc = 'https://pl28424963.effectivegatecpm.com/43/ff/29/43ff29d652f39ba2737589a53aaee626.js';
+      const adSettings = typeof getAdSettings === 'function' ? getAdSettings() : {};
+      const popunderEnabled = adSettings.popunderEnabled !== false;
+      const cooldownMinutes = Number(adSettings.popunderCooldownMinutes) || 20;
+      const popunderCooldownMs = Math.max(cooldownMinutes, 1) * 60 * 1000;
+
+      const shouldTriggerPopunder = () => {
+        const last = Number(localStorage.getItem('mukkaz_popunder_last')) || 0;
+        return Date.now() - last >= popunderCooldownMs;
+      };
+
+      const triggerPopunder = () => {
+        if (!popunderEnabled) return;
+        if (!shouldTriggerPopunder()) return;
+        localStorage.setItem('mukkaz_popunder_last', String(Date.now()));
+
+        if (document.querySelector(`script[data-popunder="true"][src="${popunderScriptSrc}"]`)) {
+          return;
+        }
+
+        const script = document.createElement('script');
+        script.src = popunderScriptSrc;
+        script.async = true;
+        script.setAttribute('data-popunder', 'true');
+        document.body.appendChild(script);
+      };
+
       // Check if video uses Cloudflare Stream (new) or direct URL (legacy)
       if (video.stream_id) {
         // Use Cloudflare Stream HLS
@@ -557,6 +612,10 @@
         if (currentUser && historyAdded && !historyPaused && Math.floor(currentTime) % 30 === 0) {
           await addToWatchHistory(video.id, Math.floor(progress));
         }
+      });
+
+      player.on('play', () => {
+        triggerPopunder();
       });
     }
 

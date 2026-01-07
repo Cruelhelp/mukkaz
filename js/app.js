@@ -28,6 +28,7 @@ async function initializeApp() {
   await checkAuthState();
   console.log(`[perf] checkAuthState ${(performance.now() - authStart).toFixed(1)}ms`);
   renderNavbar();
+  applyGlobalAdVisibility();
   runWhenIdle(applyWatchAds);
 
   console.log(`[perf] app init ${(performance.now() - perfStart).toFixed(1)}ms`);
@@ -86,11 +87,14 @@ function showNavbarSkeleton() {
 
 function getAdSettings() {
   const defaults = {
+    adsEnabled: true,
     watchPageBanner: true,
     watchPageEnabled: true,
     watchPageAdType: 'banner',
     watchPageAdPosition: 'below_player',
-    homePageEnabled: false,
+    popunderEnabled: true,
+    popunderCooldownMinutes: 20,
+    homePageEnabled: true,
     homePageAdType: 'native',
     homePageAdPosition: 'top',
     smartlinkEnabled: false,
@@ -99,6 +103,16 @@ function getAdSettings() {
 
   const stored = getFromLocalStorage('mukkaz_ad_settings') || {};
   return { ...defaults, ...stored };
+}
+
+function applyGlobalAdVisibility() {
+  const settings = getAdSettings();
+  const hideAds = settings.adsEnabled === false;
+  const slots = document.querySelectorAll('.watch-ad-slot, .inline-ad-slot, .home-ad-card');
+
+  slots.forEach(slot => {
+    slot.style.display = hideAds ? 'none' : '';
+  });
 }
 
 function createSmartlinkCard(url) {
@@ -161,7 +175,11 @@ function applyWatchAds() {
   if (!slot) return;
 
   const settings = getAdSettings();
-  slot.innerHTML = '';
+
+  if (settings.adsEnabled === false) {
+    slot.style.display = 'none';
+    return;
+  }
 
   if (!settings.watchPageEnabled) {
     slot.style.display = 'none';
@@ -170,6 +188,12 @@ function applyWatchAds() {
 
   slot.style.display = '';
   positionWatchAdSlot(slot, settings.watchPageAdPosition);
+
+  if (slot.dataset.staticAd === 'true') {
+    return;
+  }
+
+  slot.innerHTML = '';
 
   if (settings.watchPageAdType === 'banner' && settings.watchPageBanner) {
     const container = document.createElement('div');
@@ -198,6 +222,7 @@ function renderHomeAdSlot() {
   if (existing) existing.remove();
 
   const settings = getAdSettings();
+  if (settings.adsEnabled === false) return;
   if (!settings.homePageEnabled) return;
 
   const videoCards = grid.querySelectorAll('.video-card');
@@ -329,12 +354,12 @@ async function checkAuthState() {
 
     // Check if user is admin and redirect to admin panel
     if (currentUserState && window.location.pathname.includes('index.html')) {
-      if (profile && profile.role === 'admin') {
+      if (profile && ['admin', 'moderator'].includes(profile.role)) {
         // Check if user just logged in (using sessionStorage flag)
         const justLoggedIn = sessionStorage.getItem('justLoggedIn');
         if (justLoggedIn === 'true') {
           sessionStorage.removeItem('justLoggedIn');
-          showNotification('Welcome back, Admin!', 'success');
+          showNotification(`Welcome back, ${profile.role === 'admin' ? 'Admin' : 'Moderator'}!`, 'success');
           setTimeout(() => {
             window.location.href = 'admin.html';
           }, 1000);
@@ -441,9 +466,10 @@ async function renderNavbar() {
   if (currentUserState) {
     try {
       const profile = await getProfile(currentUserState.id);
-      const isAdmin = profile && profile.role === 'admin';
-      const adminButton = isAdmin ? `
-        <a href="admin.html" class="nav-icon" title="Admin Panel" style="color: var(--accent-red); display: inline-flex; align-items: center; justify-content: center;">
+      const isStaff = profile && ['admin', 'moderator'].includes(profile.role);
+      const adminLabel = profile?.role === 'moderator' ? 'Moderator Panel' : 'Admin Panel';
+      const adminButton = isStaff ? `
+        <a href="admin.html" class="nav-icon" title="${adminLabel}" style="color: var(--accent-red); display: inline-flex; align-items: center; justify-content: center;">
           <span id="adminPanelIcon">${getIcon('shield')}</span>
         </a>
       ` : '';
@@ -461,9 +487,9 @@ async function renderNavbar() {
           <div class="avatar-dropdown-container">
             ${renderAvatarWithBadge(profile, { imgClass: 'avatar', wrapperClass: 'avatar-clickable', wrapperId: 'avatarDropdownBtn' })}
             <div class="avatar-dropdown hidden" id="avatarDropdown">
-              ${isAdmin ? `<a href="admin.html" class="dropdown-item" style="color: var(--accent-red); font-weight: 600;">
+              ${isStaff ? `<a href="admin.html" class="dropdown-item" style="color: var(--accent-red); font-weight: 600;">
                 ${getIcon('shield')}
-                <span>Admin Panel</span>
+                <span>${adminLabel}</span>
               </a>
               <div class="dropdown-divider"></div>` : ''}
               <a href="profile.html" class="dropdown-item">

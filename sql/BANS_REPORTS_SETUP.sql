@@ -27,11 +27,14 @@ create unique index if not exists ip_bans_ip_active_idx
 
 alter table public.ip_bans enable row level security;
 
-create policy "Admins can manage ip bans"
+create policy "Admins and moderators can manage ip bans"
 on public.ip_bans
 for all
 using (
-  exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
+  exists (
+    select 1 from public.profiles p
+    where p.id = auth.uid() and p.role in ('admin', 'moderator')
+  )
 );
 
 -- Secure IP ban check (for client-side enforcement)
@@ -85,11 +88,14 @@ on public.video_reports
 for insert
 with check (reporter_id = auth.uid());
 
-create policy "Admins can read reports"
+create policy "Admins and moderators can read reports"
 on public.video_reports
 for select
 using (
-  exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
+  exists (
+    select 1 from public.profiles p
+    where p.id = auth.uid() and p.role in ('admin', 'moderator')
+  )
 );
 
 create policy "Video owners can read their reports"

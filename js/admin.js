@@ -11,12 +11,16 @@ let currentUserEdit = null;
 let allUsers = [];
 let allVideos = [];
 let allActivity = [];
+let adminRole = 'user';
+let currentAdminId = null;
 
 // Initialize admin panel
 document.addEventListener('DOMContentLoaded', async () => {
   await initializeApp();
-  await checkAdminAccess();
+  adminRole = await checkAdminAccess();
+  if (!adminRole) return;
   setupAdminTabs();
+  applyRolePermissions(adminRole);
   loadIcons();
   await loadDashboardData();
 });
@@ -87,18 +91,49 @@ async function checkAdminAccess() {
     return;
   }
 
-  // Check if user is admin
+  // Check if user is admin or moderator
   const { data: profile } = await supabaseClient
     .from('profiles')
     .select('role')
     .eq('id', user.id)
     .single();
 
-  if (!profile || profile.role !== 'admin') {
-    showNotification('Access denied - Admin only', 'error');
+  if (!profile || !['admin', 'moderator'].includes(profile.role)) {
+    showNotification('Access denied - Admin/Moderator only', 'error');
     setTimeout(() => window.location.href = 'index.html', 2000);
-    return;
+    return null;
   }
+
+  currentAdminId = user.id;
+  return profile.role;
+}
+
+function canAccessTab(tabName) {
+  if (adminRole === 'admin') return true;
+  const moderatorTabs = new Set(['dashboard', 'videos', 'reports', 'analytics', 'activity']);
+  return moderatorTabs.has(tabName);
+}
+
+function applyRolePermissions(role) {
+  if (role === 'admin') return;
+
+  const restrictedTabs = ['users', 'ads', 'payouts', 'cloudflare', 'database', 'settings'];
+  restrictedTabs.forEach(tabName => {
+    document.querySelectorAll(`.admin-sidebar-item[data-tab="${tabName}"]`).forEach(el => {
+      el.style.display = 'none';
+    });
+    document.querySelectorAll(`.admin-tab[data-tab="${tabName}"]`).forEach(el => {
+      el.style.display = 'none';
+    });
+    const section = document.getElementById(`${tabName}-section`);
+    if (section) section.style.display = 'none';
+  });
+
+  const monetization = document.getElementById('monetizationSummary');
+  if (monetization) monetization.style.display = 'none';
+
+  const manageBansBtn = document.getElementById('manageBansBtn');
+  if (manageBansBtn) manageBansBtn.style.display = 'none';
 }
 
 function setupAdminTabs() {
@@ -136,6 +171,10 @@ function setupAdminTabs() {
 }
 
 function showTab(tabName) {
+  if (!canAccessTab(tabName)) {
+    showNotification('This section is restricted to admins.', 'error');
+    return;
+  }
   const tabs = document.querySelectorAll('.admin-tab');
   const sections = document.querySelectorAll('.admin-section');
 
@@ -159,6 +198,7 @@ function showTab(tabName) {
 }
 
 async function loadTabData(tabName) {
+  if (!canAccessTab(tabName)) return;
   switch(tabName) {
     case 'dashboard':
       await loadDashboardData();
@@ -236,9 +276,7 @@ async function loadDashboardData() {
       { count: bannedUsersCount },
       { count: reportedVideosCount },
       { count: openReportsCount },
-      { count: activeIpBansCount },
-      { count: pendingPayoutsCount },
-      { count: approvedPayoutsCount }
+      { count: activeIpBansCount }
     ] = await Promise.all([
       supabaseClient
         .from('profiles')
@@ -257,14 +295,6 @@ async function loadDashboardData() {
         .select('*', { count: 'exact', head: true })
         .eq('active', true)
         .or(`expires_at.is.null,expires_at.gt.${nowIso}`),
-      supabaseClient
-        .from('payout_requests')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending'),
-      supabaseClient
-        .from('payout_requests')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'approved')
     ]);
 
     const openReportsEl = document.getElementById('openReports');
@@ -275,10 +305,25 @@ async function loadDashboardData() {
     if (bannedUsersEl) bannedUsersEl.textContent = bannedUsersCount || 0;
     const activeIpBansEl = document.getElementById('activeIpBans');
     if (activeIpBansEl) activeIpBansEl.textContent = activeIpBansCount || 0;
-    const pendingPayoutsEl = document.getElementById('pendingPayouts');
-    if (pendingPayoutsEl) pendingPayoutsEl.textContent = pendingPayoutsCount || 0;
-    const approvedPayoutsEl = document.getElementById('approvedPayouts');
-    if (approvedPayoutsEl) approvedPayoutsEl.textContent = approvedPayoutsCount || 0;
+    if (adminRole === 'admin') {
+      const [
+        { count: pendingPayoutsCount },
+        { count: approvedPayoutsCount }
+      ] = await Promise.all([
+        supabaseClient
+          .from('payout_requests')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'pending'),
+        supabaseClient
+          .from('payout_requests')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'approved')
+      ]);
+      const pendingPayoutsEl = document.getElementById('pendingPayouts');
+      if (pendingPayoutsEl) pendingPayoutsEl.textContent = pendingPayoutsCount || 0;
+      const approvedPayoutsEl = document.getElementById('approvedPayouts');
+      if (approvedPayoutsEl) approvedPayoutsEl.textContent = approvedPayoutsCount || 0;
+    }
 
     // Load recent activity
     await loadRecentActivity();
@@ -375,11 +420,21 @@ async function loadUsers(page = 1) {
         <td><span class="badge badge-${user.is_banned ? 'danger' : 'success'}">${user.is_banned ? 'Banned' : 'Active'}</span></td>
         <td>${user.updated_at ? timeSince(user.updated_at) + ' ago' : 'N/A'}</td>
         <td>
-          <button class="action-btn" onclick="editUser('${user.id}')">Edit</button>
-          <button class="action-btn ${user.is_banned ? '' : 'danger'}" onclick="toggleUserBan('${user.id}', ${user.is_banned})">
-            ${user.is_banned ? 'Unban' : 'Ban'}
-          </button>
-          <button class="action-btn danger" onclick="deleteUser('${user.id}')">Delete</button>
+          <div class="action-btn-group">
+            <button class="action-btn" onclick="editUser('${user.id}')">Edit</button>
+            ${user.id !== currentAdminId ? `
+            <button class="action-btn" onclick="setUserRole('${user.id}', 'moderator')" ${user.role === 'moderator' ? 'disabled' : ''}>
+              Make Moderator
+            </button>
+            <button class="action-btn" onclick="setUserRole('${user.id}', 'user')" ${user.role === 'user' ? 'disabled' : ''}>
+              Make User
+            </button>
+            ` : ''}
+            <button class="action-btn ${user.is_banned ? '' : 'danger'}" onclick="toggleUserBan('${user.id}', ${user.is_banned})">
+              ${user.is_banned ? 'Unban' : 'Ban'}
+            </button>
+            <button class="action-btn danger" onclick="deleteUser('${user.id}')">Delete</button>
+          </div>
         </td>
       </tr>
     `).join('');
@@ -517,8 +572,30 @@ async function saveUser(event) {
 
       showNotification('User updated successfully', 'success');
     } else {
-      // Create new user (Note: This requires proper auth setup)
-      showNotification('User creation requires auth integration', 'info');
+      const payload = {
+        id: crypto.randomUUID(),
+        username,
+        email,
+        role,
+        is_banned: status === 'banned',
+        ban_reason: status === 'banned' ? (banReason || null) : null,
+        banned_at: status === 'banned' ? new Date().toISOString() : null,
+        banned_by: status === 'banned' ? currentAdminId : null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await supabaseClient
+        .from('profiles')
+        .insert(payload);
+
+      if (error) throw error;
+
+      if (ipBanEnabled && ipBanValue) {
+        await addIpBan(ipBanValue, banReason || 'Banned by admin');
+      }
+
+      showNotification('User profile added (auth not created)', 'success');
     }
 
     closeUserModal();
@@ -651,6 +728,23 @@ async function loadVideos(page = 1, filter = null) {
 async function filterVideos() {
   const filter = document.getElementById('videoFilter').value;
   await loadVideos(1, filter);
+}
+
+async function setUserRole(userId, role) {
+  try {
+    const { error } = await supabaseClient
+      .from('profiles')
+      .update({ role })
+      .eq('id', userId);
+
+    if (error) throw error;
+
+    showNotification(`User role updated to ${role}`, 'success');
+    await loadUsers(currentPage.users);
+  } catch (error) {
+    console.error('Error updating role:', error);
+    showNotification('Error updating role: ' + error.message, 'error');
+  }
 }
 
 function viewVideo(videoId) {
@@ -1676,15 +1770,28 @@ document.getElementById('userSearch')?.addEventListener('input', debounce(async 
   tbody.innerHTML = filtered.map(user => `
     <tr>
       <td><code>${user.id.substring(0, 8)}...</code></td>
-      <td><strong>${user.username}</strong></td>
-      <td>${user.email || 'N/A'}</td>
-      <td><span class="badge badge-info">${user.role || 'user'}</span></td>
+      <td><strong>${escapeHtml(user.username || 'Unknown')}</strong></td>
+      <td>${escapeHtml(user.email || 'N/A')}</td>
+      <td><span class="badge badge-info">${escapeHtml(user.role || 'user')}</span></td>
       <td>0</td>
       <td><span class="badge badge-${user.is_banned ? 'danger' : 'success'}">${user.is_banned ? 'Banned' : 'Active'}</span></td>
-      <td>${timeSince(user.updated_at)} ago</td>
+      <td>${user.updated_at ? timeSince(user.updated_at) + ' ago' : 'N/A'}</td>
       <td>
-        <button class="action-btn" onclick="editUser('${user.id}')">Edit</button>
-        <button class="action-btn danger" onclick="deleteUser('${user.id}')">Delete</button>
+        <div class="action-btn-group">
+          <button class="action-btn" onclick="editUser('${user.id}')">Edit</button>
+          ${user.id !== currentAdminId ? `
+          <button class="action-btn" onclick="setUserRole('${user.id}', 'moderator')" ${user.role === 'moderator' ? 'disabled' : ''}>
+            Make Moderator
+          </button>
+          <button class="action-btn" onclick="setUserRole('${user.id}', 'user')" ${user.role === 'user' ? 'disabled' : ''}>
+            Make User
+          </button>
+          ` : ''}
+          <button class="action-btn ${user.is_banned ? '' : 'danger'}" onclick="toggleUserBan('${user.id}', ${user.is_banned})">
+            ${user.is_banned ? 'Unban' : 'Ban'}
+          </button>
+          <button class="action-btn danger" onclick="deleteUser('${user.id}')">Delete</button>
+        </div>
       </td>
     </tr>
   `).join('');
@@ -2210,10 +2317,13 @@ function loadAdsPageStatus() {
   if (!container) return;
 
   const defaults = {
+    adsEnabled: true,
     watchPageBanner: true,
     watchPageEnabled: true,
     watchPageAdType: 'banner',
     watchPageAdPosition: 'below_player',
+    popunderEnabled: true,
+    popunderCooldownMinutes: 20,
     homePageEnabled: false,
     homePageAdType: 'native',
     homePageAdPosition: 'top',
@@ -2222,20 +2332,30 @@ function loadAdsPageStatus() {
   };
   const settings = { ...defaults, ...(getFromLocalStorage('mukkaz_ad_settings') || {}) };
 
-  const watchEnabled = !!settings.watchPageEnabled;
+  const adsEnabled = settings.adsEnabled !== false;
+  const watchEnabled = adsEnabled && !!settings.watchPageEnabled;
+  const popunderDetail = settings.popunderEnabled
+    ? `Popunder on (${settings.popunderCooldownMinutes || 20} min cooldown)`
+    : 'Popunder off';
   const watchDetail = watchEnabled
-    ? `Ads enabled (${settings.watchPageAdType}, ${settings.watchPageAdPosition}); banner slot ${settings.watchPageBanner ? 'on' : 'off'}`
-    : `Ads disabled (type: ${settings.watchPageAdType}, position: ${settings.watchPageAdPosition})`;
+    ? `Ads enabled (${settings.watchPageAdType}, ${settings.watchPageAdPosition}); banner slot ${settings.watchPageBanner ? 'on' : 'off'}; ${popunderDetail}`
+    : adsEnabled
+      ? `Ads disabled (type: ${settings.watchPageAdType}, position: ${settings.watchPageAdPosition}); ${popunderDetail}`
+      : 'Global ads disabled';
 
-  const homeEnabled = !!settings.homePageEnabled;
+  const homeEnabled = adsEnabled && !!settings.homePageEnabled;
   const homeDetail = homeEnabled
     ? `Ads enabled (${settings.homePageAdType}, ${settings.homePageAdPosition})`
-    : `Ads disabled (type: ${settings.homePageAdType}, position: ${settings.homePageAdPosition})`;
+    : adsEnabled
+      ? `Ads disabled (type: ${settings.homePageAdType}, position: ${settings.homePageAdPosition})`
+      : 'Global ads disabled';
 
-  const smartlinkEnabled = !!settings.smartlinkEnabled;
+  const smartlinkEnabled = adsEnabled && !!settings.smartlinkEnabled;
   const smartlinkDetail = smartlinkEnabled
     ? `Enabled (${settings.smartlinkUrl || 'no URL set'})`
-    : `Disabled (${settings.smartlinkUrl || 'no URL set'})`;
+    : adsEnabled
+      ? `Disabled (${settings.smartlinkUrl || 'no URL set'})`
+      : 'Global ads disabled';
 
   const pages = [
     { page: 'watch.html', status: watchEnabled ? 'Enabled' : 'Disabled', detail: watchDetail },
@@ -2295,10 +2415,13 @@ async function testAdsterraConnection() {
 
 function loadAdSettings() {
   const defaults = {
+    adsEnabled: true,
     watchPageBanner: true,
     watchPageEnabled: true,
     watchPageAdType: 'banner',
     watchPageAdPosition: 'below_player',
+    popunderEnabled: true,
+    popunderCooldownMinutes: 20,
     homePageEnabled: false,
     homePageAdType: 'native',
     homePageAdPosition: 'top',
@@ -2312,16 +2435,22 @@ function loadAdSettings() {
   const watchPageToggle = document.getElementById('watchPageEnabledToggle');
   const watchPageAdType = document.getElementById('watchPageAdType');
   const watchPageAdPosition = document.getElementById('watchPageAdPosition');
+  const popunderEnabledToggle = document.getElementById('popunderEnabledToggle');
+  const popunderCooldownMinutes = document.getElementById('popunderCooldownMinutes');
   const homePageToggle = document.getElementById('homePageEnabledToggle');
   const homePageAdType = document.getElementById('homePageAdType');
   const homePageAdPosition = document.getElementById('homePageAdPosition');
   const smartlinkToggle = document.getElementById('smartlinkEnabledToggle');
   const smartlinkUrl = document.getElementById('smartlinkUrl');
+  const adsEnabledToggle = document.getElementById('adsEnabledToggle');
 
+  if (adsEnabledToggle) adsEnabledToggle.checked = settings.adsEnabled !== false;
   if (watchBannerToggle) watchBannerToggle.checked = settings.watchPageBanner;
   if (watchPageToggle) watchPageToggle.checked = settings.watchPageEnabled;
   if (watchPageAdType) watchPageAdType.value = settings.watchPageAdType;
   if (watchPageAdPosition) watchPageAdPosition.value = settings.watchPageAdPosition;
+  if (popunderEnabledToggle) popunderEnabledToggle.checked = settings.popunderEnabled !== false;
+  if (popunderCooldownMinutes) popunderCooldownMinutes.value = settings.popunderCooldownMinutes || 20;
   if (homePageToggle) homePageToggle.checked = settings.homePageEnabled;
   if (homePageAdType) homePageAdType.value = settings.homePageAdType;
   if (homePageAdPosition) homePageAdPosition.value = settings.homePageAdPosition;
@@ -2331,10 +2460,13 @@ function loadAdSettings() {
 
 function saveAdSettings() {
   const settings = {
+    adsEnabled: document.getElementById('adsEnabledToggle')?.checked !== false,
     watchPageBanner: document.getElementById('watchPageBannerToggle')?.checked || false,
     watchPageEnabled: document.getElementById('watchPageEnabledToggle')?.checked || false,
     watchPageAdType: document.getElementById('watchPageAdType')?.value || 'banner',
     watchPageAdPosition: document.getElementById('watchPageAdPosition')?.value || 'below_player',
+    popunderEnabled: document.getElementById('popunderEnabledToggle')?.checked !== false,
+    popunderCooldownMinutes: Number(document.getElementById('popunderCooldownMinutes')?.value) || 20,
     homePageEnabled: document.getElementById('homePageEnabledToggle')?.checked || false,
     homePageAdType: document.getElementById('homePageAdType')?.value || 'native',
     homePageAdPosition: document.getElementById('homePageAdPosition')?.value || 'top',
@@ -2349,10 +2481,13 @@ function saveAdSettings() {
 
 function resetAdControls() {
   const defaults = {
+    adsEnabled: true,
     watchPageBanner: true,
     watchPageEnabled: true,
     watchPageAdType: 'banner',
     watchPageAdPosition: 'below_player',
+    popunderEnabled: true,
+    popunderCooldownMinutes: 20,
     homePageEnabled: false,
     homePageAdType: 'native',
     homePageAdPosition: 'top',

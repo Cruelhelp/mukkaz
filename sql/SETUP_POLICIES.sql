@@ -28,6 +28,37 @@ CREATE POLICY "Users can update their own profile"
 ON profiles FOR UPDATE
 USING (auth.uid() = id);
 
+
+-- Allow admins to insert profiles
+CREATE POLICY "Admins can insert profiles"
+ON profiles FOR INSERT
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM profiles p
+    WHERE p.id = auth.uid() AND p.role = 'admin'
+  )
+);
+
+-- Allow admins to update any profile
+CREATE POLICY "Admins can update any profile"
+ON profiles FOR UPDATE
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles p
+    WHERE p.id = auth.uid() AND p.role = 'admin'
+  )
+);
+
+-- Allow admins to delete any profile
+CREATE POLICY "Admins can delete any profile"
+ON profiles FOR DELETE
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles p
+    WHERE p.id = auth.uid() AND p.role = 'admin'
+  )
+);
+
 -- ============================================
 -- VIDEOS TABLE POLICIES
 -- ============================================

@@ -90,12 +90,12 @@ async function signUp(email, password, username) {
   if (authData.user && authData.session) {
     const { error: profileError } = await supabaseClient
       .from('profiles')
-      .insert([{
+      .upsert([{
         id: authData.user.id,
         username,
         avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(username)}`,
         updated_at: new Date().toISOString()
-      }]);
+      }], { onConflict: 'id' });
 
     if (profileError) {
       console.error('Profile creation error:', profileError);
@@ -124,7 +124,10 @@ async function signIn(email, password) {
   });
 
   if (error) throw error;
-  clearCache(getCacheKey('subscriptions', user.id));
+  const userId = data?.user?.id;
+  if (userId) {
+    clearCache(getCacheKey('subscriptions', userId));
+  }
   clearCache(getCacheKey('videos', 'all'));
   return data;
 }
@@ -137,7 +140,10 @@ async function signInWithGoogle() {
   });
 
   if (error) throw error;
-  clearCache(getCacheKey('subscriptions', user.id));
+  const userId = data?.user?.id;
+  if (userId) {
+    clearCache(getCacheKey('subscriptions', userId));
+  }
   return data;
 }
 
