@@ -1382,6 +1382,33 @@ body, .video-title, .video-meta, .channel-name, .navbar, .sidebar {
   border-radius: 8px;
 }
 
+.watch-ad-slot iframe,
+.inline-ad-slot iframe {
+  max-width: 100%;
+  width: 100%;
+  border: 0;
+}
+
+.watch-ad-slot img,
+.inline-ad-slot img {
+  max-width: 100%;
+  height: auto;
+}
+
+.inline-ad-slot {
+  width: 100%;
+  background: var(--bg-secondary);
+  padding: 8px;
+  border-radius: 8px;
+}
+
+@media (max-width: 640px) {
+  .watch-ad-slot,
+  .inline-ad-slot {
+    padding: 6px;
+  }
+}
+
 .watch-ad-slot .smartlink-card,
 .home-ad-card .smartlink-card {
   display: flex;

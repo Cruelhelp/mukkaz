@@ -190,6 +190,21 @@ function applyWatchAds() {
   positionWatchAdSlot(slot, settings.watchPageAdPosition);
 
   if (slot.dataset.staticAd === 'true') {
+    if (!slot.dataset.fallbackScheduled) {
+      slot.dataset.fallbackScheduled = 'true';
+      setTimeout(() => {
+        if (!document.body.contains(slot)) return;
+        if (settings.adsEnabled === false || !settings.watchPageEnabled) return;
+        const hasIframe = slot.querySelector('iframe');
+        if (!hasIframe) {
+          slot.innerHTML = '';
+          const container = document.createElement('div');
+          container.id = 'container-ce630968429585fc33b1cd2e0f35d06a';
+          slot.appendChild(container);
+          ensureAdsterraBannerScript();
+        }
+      }, 3000);
+    }
     return;
   }
 

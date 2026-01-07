@@ -551,6 +551,8 @@
       const popunderScriptSrc = 'https://pl28424963.effectivegatecpm.com/43/ff/29/43ff29d652f39ba2737589a53aaee626.js';
       const adSettings = typeof getAdSettings === 'function' ? getAdSettings() : {};
       const popunderEnabled = adSettings.popunderEnabled !== false;
+      const adsEnabled = adSettings.adsEnabled !== false;
+      const watchAdsEnabled = adSettings.watchPageEnabled !== false;
       const cooldownMinutes = Number(adSettings.popunderCooldownMinutes) || 20;
       const popunderCooldownMs = Math.max(cooldownMinutes, 1) * 60 * 1000;
 
@@ -560,7 +562,7 @@
       };
 
       const triggerPopunder = () => {
-        if (!popunderEnabled) return;
+        if (!adsEnabled || !watchAdsEnabled || !popunderEnabled) return;
         if (!shouldTriggerPopunder()) return;
         localStorage.setItem('mukkaz_popunder_last', String(Date.now()));
 

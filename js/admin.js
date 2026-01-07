@@ -2456,6 +2456,21 @@ function loadAdSettings() {
   if (homePageAdPosition) homePageAdPosition.value = settings.homePageAdPosition;
   if (smartlinkToggle) smartlinkToggle.checked = settings.smartlinkEnabled;
   if (smartlinkUrl) smartlinkUrl.value = settings.smartlinkUrl || '';
+
+  const popunderLast = document.getElementById('popunderLastFired');
+  if (popunderLast) {
+    const lastFired = Number(localStorage.getItem('mukkaz_popunder_last')) || 0;
+    popunderLast.textContent = lastFired ? new Date(lastFired).toLocaleString() : 'Never';
+  }
+}
+
+function resetPopunderCooldown() {
+  localStorage.removeItem('mukkaz_popunder_last');
+  const popunderLast = document.getElementById('popunderLastFired');
+  if (popunderLast) {
+    popunderLast.textContent = 'Never';
+  }
+  showNotification('Popunder cooldown reset', 'success');
 }
 
 function saveAdSettings() {

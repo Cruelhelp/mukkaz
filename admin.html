@@ -1231,6 +1231,13 @@
                 <label for="popunderCooldownMinutes">Popunder cooldown (mins)</label>
                 <input type="number" id="popunderCooldownMinutes" class="form-input" min="1" max="1440" step="1" value="20" onchange="saveAdSettings()">
               </div>
+              <div class="ad-control-row">
+                <label>Last popunder</label>
+                <span class="secondary" id="popunderLastFired">Never</span>
+              </div>
+              <div class="ad-control-actions">
+                <button class="btn-secondary" type="button" onclick="resetPopunderCooldown()">Reset popunder cooldown</button>
+              </div>
             </div>
 
             <div class="ad-control-card">
